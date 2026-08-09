@@ -74,6 +74,8 @@ class KidsLearningApp {
       dropzoneTitleText: document.getElementById('dropzoneTitleText'),
       dropzoneSubText: document.getElementById('dropzoneSubText'),
       uploadDropzone: document.getElementById('uploadDropzone'),
+      btnCameraSnap: document.getElementById('btnCameraSnap'),
+      fileInputCamera: document.getElementById('fileInputCamera'),
       fileInputMulti: document.getElementById('fileInputMulti'),
       btnChoosePhotos: document.getElementById('btnChoosePhotos'),
       btnPasteClipboard: document.getElementById('btnPasteClipboard'),
@@ -85,6 +87,12 @@ class KidsLearningApp {
       ocrProgressStatus: document.getElementById('ocrProgressStatus'),
       ocrProgressPercent: document.getElementById('ocrProgressPercent'),
       ocrProgressBarFill: document.getElementById('ocrProgressBarFill'),
+
+      // Modal Live Camera Viewfinder
+      modalLiveCamera: document.getElementById('modalLiveCamera'),
+      cameraVideoFeed: document.getElementById('cameraVideoFeed'),
+      btnCloseCameraModal: document.getElementById('btnCloseCameraModal'),
+      btnSnapCameraStream: document.getElementById('btnSnapCameraStream'),
 
       // Chapter Reader View
       tempScanHeaderBanner: document.getElementById('tempScanHeaderBanner'),
@@ -159,6 +167,26 @@ class KidsLearningApp {
     }
     if (this.dom.btnConfirmSaveTemp) {
       this.dom.btnConfirmSaveTemp.addEventListener('click', () => this.handleSaveTempToDatabase());
+    }
+
+    // Camera Events
+    if (this.dom.btnCameraSnap) {
+      this.dom.btnCameraSnap.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openCameraView();
+      });
+    }
+
+    if (this.dom.fileInputCamera) {
+      this.dom.fileInputCamera.addEventListener('change', (e) => this.handleFileSelection(e.target.files));
+    }
+
+    if (this.dom.btnCloseCameraModal) {
+      this.dom.btnCloseCameraModal.addEventListener('click', () => this.stopCameraStream());
+    }
+
+    if (this.dom.btnSnapCameraStream) {
+      this.dom.btnSnapCameraStream.addEventListener('click', () => this.snapFrameFromCamera());
     }
 
     this.dom.uploadDropzone.addEventListener('click', (e) => {
@@ -579,6 +607,60 @@ class KidsLearningApp {
       card.appendChild(removeBtn);
       this.dom.imagePreviewsGrid.appendChild(card);
     });
+  }
+
+  // --- CAMERA HANDLERS ---
+  async openCameraView() {
+    // 1. Try WebRTC Live Viewfinder Camera Stream
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } }
+        });
+        this.cameraStream = stream;
+        this.dom.cameraVideoFeed.srcObject = stream;
+        this.dom.modalLiveCamera.classList.add('active');
+        return;
+      } catch (err) {
+        console.warn('Live WebRTC camera stream fallback to mobile capture input:', err);
+      }
+    }
+    // 2. Fallback directly to Mobile Native Camera shutter input
+    if (this.dom.fileInputCamera) {
+      this.dom.fileInputCamera.click();
+    }
+  }
+
+  stopCameraStream() {
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    if (this.dom.modalLiveCamera) {
+      this.dom.modalLiveCamera.classList.remove('active');
+    }
+  }
+
+  async snapFrameFromCamera() {
+    const video = this.dom.cameraVideoFeed;
+    if (!video || video.readyState < 2) {
+      this.showToast('Camera feed loading...');
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    const capturedFile = new File([blob], `camera_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+    this.selectedUploadFiles.push(capturedFile);
+    this.renderImagePreviews();
+    this.stopCameraStream();
+    this.showToast('Photo captured! 📸');
   }
 
   async handleStartBatchOcr() {

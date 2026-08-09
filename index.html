@@ -114,10 +114,15 @@
         <!-- Dropzone & Multi File Input -->
         <div class="upload-dropzone" id="uploadDropzone">
           <span class="dropzone-icon">🖼️</span>
-          <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload or Paste Photo(s)</h3>
-          <p class="dropzone-sub" id="dropzoneSubText">Select files, drag & drop, or paste image from clipboard (Ctrl+V)</p>
+          <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload, Take Photo, or Paste</h3>
+          <p class="dropzone-sub" id="dropzoneSubText">Use mobile camera, upload files, drag & drop, or paste (Ctrl+V)</p>
+          
+          <!-- Hidden Native File Inputs -->
+          <input type="file" id="fileInputCamera" accept="image/*" capture="environment" style="display: none;">
           <input type="file" id="fileInputMulti" multiple accept="image/*" style="display: none;">
+          
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+            <button class="btn-pill" id="btnCameraSnap" style="background: var(--bg-gradient); color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);">📷 Take Photo (Camera)</button>
             <button class="btn-pill" id="btnChoosePhotos">📁 Choose Photos</button>
             <button class="btn-pill" id="btnPasteClipboard" style="background: var(--accent-pink-soft); color: var(--accent-pink);">📋 Paste Image</button>
           </div>
@@ -297,6 +302,28 @@
           <input type="text" id="inputSaveTempTitle" class="form-input" placeholder="e.g. Chapter 1: Quick Story">
         </div>
         <button class="btn-cta" id="btnConfirmSaveTemp">Save to Chapter List</button>
+      </div>
+    </div>
+
+    <!-- MODAL: LIVE CAMERA VIEWFINDER -->
+    <div class="modal-overlay" id="modalLiveCamera">
+      <div class="modal-card" style="max-width: 440px; padding: 18px; text-align: center;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">📷 Align Page & Snap Photo</h3>
+          <button class="btn-delete-small" id="btnCloseCameraModal">✕</button>
+        </div>
+        
+        <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
+          <video id="cameraVideoFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+          <!-- Page Framing Guide -->
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; border: 2px dashed rgba(255,255,255,0.7); border-radius: 12px; pointer-events: none; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font-size: 12px;">
+            Align textbook page inside frame
+          </div>
+        </div>
+
+        <button class="btn-cta" id="btnSnapCameraStream" style="background: var(--bg-gradient); color: white; padding: 14px;">
+          <span>📸 Snap Picture</span>
+        </button>
       </div>
     </div>
 
