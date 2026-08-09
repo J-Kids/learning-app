@@ -472,9 +472,9 @@ class KidsLearningApp {
       this.dom.radioModeFull.checked = false;
       this.dom.fullChapterFields.style.display = 'none';
       this.dom.tempScanNotice.style.display = 'flex';
-      this.dom.dropzoneTitleText.textContent = 'Tap to Upload 1 Photo for Quick Scan';
+      this.dom.dropzoneTitleText.textContent = 'Tap to Upload 1 Photo for Temporary Scan';
       this.dom.dropzoneSubText.textContent = 'Select 1 photo or paste image for temporary read aloud';
-      this.dom.btnStartOcr.innerHTML = '<span>⚡ Quick Scan 1 Page & Read</span>';
+      this.dom.btnStartOcr.innerHTML = '<span>⚡ Quick Temporary Scan & Read</span>';
     }
   }
 
@@ -671,13 +671,13 @@ class KidsLearningApp {
       const tempChapter = {
         id: 'temp_chap',
         subjectId: null,
-        title: '⚡ Temporary 1-Page Scan',
+        title: '⚡ Temporary Scan',
         isTemporary: true
       };
 
       this.temporaryPagesData = tempPages;
       this.dom.btnStartOcr.disabled = false;
-      this.showToast('Temporary 1-page scan ready! ⚡');
+      this.showToast('Temporary scan ready! ⚡');
       this.openTemporaryChapterReader(tempChapter, tempPages);
     }
   }
