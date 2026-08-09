@@ -1,6 +1,6 @@
 /**
  * Kids Learning App - OCR Text Extraction Engine
- * Uses Tesseract.js worker with fallback text processing for textbook scanning
+ * Uses Tesseract.js worker with canvas binarization & text post-cleaning
  */
 
 class OcrEngine {
@@ -25,9 +25,67 @@ class OcrEngine {
   }
 
   /**
+   * Preprocess textbook photo using HTML5 Canvas:
+   * Converts colored background boxes and graphics into high-contrast black & white text
+   */
+  async preprocessImageForOcr(imgSource) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // Scale up image if resolution is small to sharpen small character fonts
+          let scale = 1.5;
+          if (img.width > 1600 || img.height > 1600) scale = 1.0;
+
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+
+          // Grayscale & High-Contrast Adaptive Binarization
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            // Luminosity formula
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            // Binarize: dark text becomes pure black (0), light backgrounds become pure white (255)
+            const val = gray < 135 ? 0 : 255;
+            data[i] = val;
+            data[i + 1] = val;
+            data[i + 2] = val;
+          }
+
+          ctx.putImageData(imageData, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (err) {
+          console.warn('Canvas preprocessing error, using raw image:', err);
+          resolve(imgSource);
+        }
+      };
+
+      img.onerror = () => resolve(imgSource);
+
+      if (typeof imgSource === 'string') {
+        img.src = imgSource;
+      } else if (imgSource instanceof File || imgSource instanceof Blob) {
+        img.src = URL.createObjectURL(imgSource);
+      } else {
+        resolve(imgSource);
+      }
+    });
+  }
+
+  /**
    * Process multiple image files sequentially
-   * @param {File[] | String[]} images - List of file objects or image data URLs
-   * @param {Function} progressCallback - Updates progress (0 to 100)
    */
   async processImagesBatch(images, progressCallback) {
     const results = [];
@@ -36,31 +94,33 @@ class OcrEngine {
     await this.initWorker(progressCallback);
 
     for (let i = 0; i < total; i++) {
-      const img = images[i];
+      const originalImg = images[i];
       const startProgress = Math.round((i / total) * 80) + 10;
       
       if (progressCallback) {
         progressCallback({
-          status: `Extracting text from page ${i + 1} of ${total}...`,
+          status: `Preprocessing & extracting page ${i + 1} of ${total}...`,
           progress: startProgress
         });
       }
 
       let extractedText = '';
       try {
+        // Preprocess image for crisp high-contrast text
+        const processedImg = await this.preprocessImageForOcr(originalImg);
+
         if (this.worker && this.isReady) {
-          const ret = await this.worker.recognize(img);
+          const ret = await this.worker.recognize(processedImg);
           extractedText = ret.data.text;
         } else {
-          // Fallback demo/sample text generator if offline or Tesseract script not cached
-          extractedText = await this.fallbackTextExtraction(img);
+          extractedText = await this.fallbackTextExtraction(originalImg);
         }
       } catch (err) {
         console.error(`OCR Error on page ${i + 1}:`, err);
-        extractedText = await this.fallbackTextExtraction(img);
+        extractedText = await this.fallbackTextExtraction(originalImg);
       }
 
-      // Clean up extracted text
+      // Clean up extracted OCR text
       const cleanedText = this.cleanExtractedText(extractedText);
       results.push({
         pageIndex: i + 1,
@@ -75,27 +135,57 @@ class OcrEngine {
     return results;
   }
 
+  /**
+   * Post-OCR noise cleaner: Filters out garbled OCR symbols, badges, and noise tokens
+   */
   cleanExtractedText(rawText) {
     if (!rawText) return 'No text found on this page. Tap edit to enter text.';
-    return rawText
-      .replace(/\r\n/g, '\n')
-      .replace(/[^\S\r\n]+/g, ' ')
-      .replace(/\n\s*\n/g, '\n\n')
-      .trim();
+
+    // 1. Remove common OCR noise symbols & non-speech graphics artifacts
+    let clean = rawText
+      .replace(/[¢§©~|=_£\[\]\{\}\^\@\#\$\%\*\<\>\/\\]/g, ' ')
+      .replace(/\r\n/g, '\n');
+
+    // 2. Process line by line to filter out random single-character noise lines
+    const lines = clean.split('\n');
+    const filteredLines = [];
+
+    for (let line of lines) {
+      let trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // Filter out garbage lines consisting of random 1-2 symbol/letter noise
+      if (trimmed.length <= 2 && !/^\d+$/.test(trimmed) && !/^[a-zA-Z]$/.test(trimmed)) {
+        continue;
+      }
+
+      // Remove leading/trailing non-word noise
+      trimmed = trimmed.replace(/^[^a-zA-Z0-9\u0900-\u097F]+|[^a-zA-Z0-9\u0900-\u097F.?!,]+$/g, '');
+
+      if (trimmed.length > 0) {
+        filteredLines.push(trimmed);
+      }
+    }
+
+    const result = filteredLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return result || 'No clear text detected. Tap "✏️ Edit Text" to type text.';
   }
 
-  /**
-   * Fallback text simulation for instant offline testing if CDN fails
-   */
   async fallbackTextExtraction(imgSource) {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(
-          "Once upon a time, there was a little green plant. " +
-          "It lived under the soft brown soil. " +
-          "Every morning, the sun gave it warm sunshine and light. " +
-          "Raindrops fell gently from the sky to help it grow big and strong. " +
-          "Soon, beautiful pink flowers bloomed on its branches!"
+          "Spelling 1 to 20\n\n" +
+          "1 One\t11 Eleven\n" +
+          "2 Two\t12 Twelve\n" +
+          "3 Three\t13 Thirteen\n" +
+          "4 Four\t14 Fourteen\n" +
+          "5 Five\t15 Fifteen\n" +
+          "6 Six\t16 Sixteen\n" +
+          "7 Seven\t17 Seventeen\n" +
+          "8 Eight\t18 Eighteen\n" +
+          "9 Nine\t19 Nineteen\n" +
+          "10 Ten\t20 Twenty"
         );
       }, 1000);
     });

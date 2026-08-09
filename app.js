@@ -95,7 +95,7 @@ class KidsLearningApp {
       btnCloseCameraModal: document.getElementById('btnCloseCameraModal'),
       btnSnapCameraStream: document.getElementById('btnSnapCameraStream'),
 
-      // Chapter Reader View
+      // Chapter Reader View & Edit Modal
       tempScanHeaderBanner: document.getElementById('tempScanHeaderBanner'),
       btnSaveTempToChapter: document.getElementById('btnSaveTempToChapter'),
       readerChapterTitle: document.getElementById('readerChapterTitle'),
@@ -103,8 +103,13 @@ class KidsLearningApp {
       btnLangEn: document.getElementById('btnLangEn'),
       btnLangHi: document.getElementById('btnLangHi'),
       readerPageIndicator: document.getElementById('readerPageIndicator'),
+      btnEditTextContent: document.getElementById('btnEditTextContent'),
       btnViewOriginalImage: document.getElementById('btnViewOriginalImage'),
       textContentBox: document.getElementById('textContentBox'),
+      modalEditText: document.getElementById('modalEditText'),
+      btnCloseEditTextModal: document.getElementById('btnCloseEditTextModal'),
+      inputPageTextEdit: document.getElementById('inputPageTextEdit'),
+      btnSavePageTextEdit: document.getElementById('btnSavePageTextEdit'),
 
       // Audio Player Dock
       audioPlayerDock: document.getElementById('audioPlayerDock'),
@@ -167,6 +172,19 @@ class KidsLearningApp {
     }
     if (this.dom.btnConfirmSaveTemp) {
       this.dom.btnConfirmSaveTemp.addEventListener('click', () => this.handleSaveTempToDatabase());
+    }
+
+    // Modal Edit Page Text Events
+    if (this.dom.btnEditTextContent) {
+      this.dom.btnEditTextContent.addEventListener('click', () => this.openEditTextModal());
+    }
+    if (this.dom.btnCloseEditTextModal) {
+      this.dom.btnCloseEditTextModal.addEventListener('click', () => {
+        this.dom.modalEditText.classList.remove('active');
+      });
+    }
+    if (this.dom.btnSavePageTextEdit) {
+      this.dom.btnSavePageTextEdit.addEventListener('click', () => this.handleSavePageTextEdit());
     }
 
     // Camera Events
@@ -862,6 +880,45 @@ class KidsLearningApp {
 
       this.dom.textContentBox.appendChild(span);
     });
+  }
+
+  openEditTextModal() {
+    if (!this.currentChapterPages || this.currentChapterPages.length === 0) return;
+    const page = this.currentChapterPages[this.currentPageIndex];
+    this.dom.inputPageTextEdit.value = page.textEn || '';
+    this.dom.modalEditText.classList.add('active');
+  }
+
+  async handleSavePageTextEdit() {
+    if (!this.currentChapterPages || this.currentChapterPages.length === 0) return;
+    const page = this.currentChapterPages[this.currentPageIndex];
+    const newTextEn = this.dom.inputPageTextEdit.value.trim();
+
+    if (!newTextEn) {
+      this.showToast('Please enter text content');
+      return;
+    }
+
+    this.dom.btnSavePageTextEdit.disabled = true;
+    this.dom.btnSavePageTextEdit.textContent = 'Translating...';
+
+    const newTextHi = await window.translationEngine.translateToHindi(newTextEn);
+
+    page.textEn = newTextEn;
+    page.textHi = newTextHi;
+
+    if (!page.id.startsWith('temp_page_')) {
+      await window.learningDB.savePage(page);
+    }
+
+    this.dom.btnSavePageTextEdit.disabled = false;
+    this.dom.btnSavePageTextEdit.textContent = 'Save & Re-translate';
+    this.dom.modalEditText.classList.remove('active');
+
+    window.ttsPlayer.stop();
+    this.updatePlayButtonState(false);
+    this.renderCurrentReaderPage();
+    this.showToast('Page text updated & translated! ✨');
   }
 
   // --- AUDIO PLAYBACK CONTROLLER ---

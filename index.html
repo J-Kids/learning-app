@@ -20,7 +20,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle">Class 2 • English & Hindi <span class="build-tag" id="appBuildTag">Build v1.0.3</span></p>
+            <p class="app-subtitle">Class 2 • English & Hindi <span class="build-tag" id="appBuildTag">Build v1.0.4</span></p>
           </div>
         </div>
         <button class="btn-icon" id="btnHeaderScan" title="Scan / Upload Pages">📷</button>
@@ -200,7 +200,10 @@
           <!-- Page Indicator & Scanned Image Modal Trigger -->
           <div class="page-image-toggle-bar">
             <span class="page-num-indicator" id="readerPageIndicator">Page 1 of 1</span>
-            <button class="btn-pill" id="btnViewOriginalImage" style="padding: 4px 10px; font-size: 11px;">🖼️ View Photo</button>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-pill" id="btnEditTextContent" style="padding: 4px 10px; font-size: 11px; background: white; color: var(--primary-purple);">✏️ Edit Text</button>
+              <button class="btn-pill" id="btnViewOriginalImage" style="padding: 4px 10px; font-size: 11px;">🖼️ View Photo</button>
+            </div>
           </div>
 
           <!-- Main Text Box with Sentence Highlighting -->
@@ -314,6 +317,21 @@
         <button class="btn-cta" id="btnSnapCameraStream" style="background: var(--bg-gradient); color: white; padding: 14px;">
           <span>📸 Snap Picture</span>
         </button>
+      </div>
+    </div>
+
+    <!-- MODAL: EDIT PAGE TEXT -->
+    <div class="modal-overlay" id="modalEditText">
+      <div class="modal-card" style="max-width: 440px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✏️ Edit Page Text</h3>
+          <button class="btn-delete-small" id="btnCloseEditTextModal">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputPageTextEdit">Page Content (English)</label>
+          <textarea id="inputPageTextEdit" class="form-input" rows="8" style="font-family: var(--font-body); font-size: 15px; resize: vertical; line-height: 1.5;"></textarea>
+        </div>
+        <button class="btn-cta" id="btnSavePageTextEdit">Save & Re-translate</button>
       </div>
     </div>
 
