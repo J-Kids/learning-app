@@ -91,40 +91,69 @@ class OcrEngine {
     const results = [];
     const total = images.length;
 
-    await this.initWorker(progressCallback);
+    // Check if Gemini Vision AI is configured & online
+    const useGemini = window.geminiEngine && window.geminiEngine.hasApiKey() && navigator.onLine;
+
+    if (!useGemini) {
+      await this.initWorker(progressCallback);
+    }
 
     for (let i = 0; i < total; i++) {
       const originalImg = images[i];
       const startProgress = Math.round((i / total) * 80) + 10;
       
-      if (progressCallback) {
-        progressCallback({
-          status: `Preprocessing & extracting page ${i + 1} of ${total}...`,
-          progress: startProgress
-        });
+      let extractedText = '';
+      let textHi = '';
+      let isAiPowered = false;
+
+      if (useGemini) {
+        if (progressCallback) {
+          progressCallback({
+            status: `✨ AI Vision scanning page ${i + 1} of ${total}...`,
+            progress: startProgress
+          });
+        }
+
+        try {
+          const aiResult = await window.geminiEngine.scanPageWithGemini(originalImg);
+          extractedText = aiResult.textEn;
+          textHi = aiResult.textHi;
+          isAiPowered = true;
+        } catch (err) {
+          console.warn(`Gemini AI scan failed for page ${i + 1}, falling back to Tesseract OCR:`, err);
+        }
       }
 
-      let extractedText = '';
-      try {
-        // Preprocess image for crisp high-contrast text
-        const processedImg = await this.preprocessImageForOcr(originalImg);
+      if (!extractedText) {
+        if (progressCallback) {
+          progressCallback({
+            status: `⚡ Local OCR extracting page ${i + 1} of ${total}...`,
+            progress: startProgress
+          });
+        }
 
-        if (this.worker && this.isReady) {
-          const ret = await this.worker.recognize(processedImg);
-          extractedText = ret.data.text;
-        } else {
+        try {
+          const processedImg = await this.preprocessImageForOcr(originalImg);
+
+          if (this.worker && this.isReady) {
+            const ret = await this.worker.recognize(processedImg);
+            extractedText = ret.data.text;
+          } else {
+            extractedText = await this.fallbackTextExtraction(originalImg);
+          }
+        } catch (err) {
+          console.error(`OCR Error on page ${i + 1}:`, err);
           extractedText = await this.fallbackTextExtraction(originalImg);
         }
-      } catch (err) {
-        console.error(`OCR Error on page ${i + 1}:`, err);
-        extractedText = await this.fallbackTextExtraction(originalImg);
+
+        extractedText = this.cleanExtractedText(extractedText);
       }
 
-      // Clean up extracted OCR text
-      const cleanedText = this.cleanExtractedText(extractedText);
       results.push({
         pageIndex: i + 1,
-        text: cleanedText
+        text: extractedText,
+        textHi: textHi,
+        isAiPowered: isAiPowered
       });
     }
 

@@ -132,6 +132,16 @@ class KidsLearningApp {
       inputSaveTempTitle: document.getElementById('inputSaveTempTitle'),
       btnConfirmSaveTemp: document.getElementById('btnConfirmSaveTemp'),
 
+      // AI Settings Modal
+      btnHeaderAiSettings: document.getElementById('btnHeaderAiSettings'),
+      modalAiSettings: document.getElementById('modalAiSettings'),
+      btnCloseAiSettings: document.getElementById('btnCloseAiSettings'),
+      inputGeminiApiKey: document.getElementById('inputGeminiApiKey'),
+      btnSaveAiKey: document.getElementById('btnSaveAiKey'),
+      btnClearAiKey: document.getElementById('btnClearAiKey'),
+      aiStatusDot: document.getElementById('aiStatusDot'),
+      aiStatusText: document.getElementById('aiStatusText'),
+
       // Toast
       toastMsg: document.getElementById('toastMsg')
     };
@@ -144,6 +154,22 @@ class KidsLearningApp {
     // Header Scan Button & Quick Banner
     this.dom.btnHeaderScan.addEventListener('click', () => this.openScanView());
     this.dom.quickScanBanner.addEventListener('click', () => this.openScanView());
+
+    // Header AI Settings Button
+    if (this.dom.btnHeaderAiSettings) {
+      this.dom.btnHeaderAiSettings.addEventListener('click', () => this.openAiSettingsModal());
+    }
+    if (this.dom.btnCloseAiSettings) {
+      this.dom.btnCloseAiSettings.addEventListener('click', () => {
+        this.dom.modalAiSettings.classList.remove('active');
+      });
+    }
+    if (this.dom.btnSaveAiKey) {
+      this.dom.btnSaveAiKey.addEventListener('click', () => this.handleSaveAiKey());
+    }
+    if (this.dom.btnClearAiKey) {
+      this.dom.btnClearAiKey.addEventListener('click', () => this.handleClearAiKey());
+    }
 
     // Modal Add Subject
     this.dom.btnAddSubjectModal.addEventListener('click', () => {
@@ -688,7 +714,8 @@ class KidsLearningApp {
 
       for (let i = 0; i < ocrResults.length; i++) {
         const res = ocrResults[i];
-        const translatedHi = await window.translationEngine.translateToHindi(res.text);
+        // Use AI-provided Hindi translation if available, else translate offline
+        const translatedHi = res.textHi || await window.translationEngine.translateToHindi(res.text);
 
         const page = {
           id: `page_${chapterId}_${i + 1}`,
@@ -696,13 +723,15 @@ class KidsLearningApp {
           pageIndex: i + 1,
           textEn: res.text,
           textHi: translatedHi,
+          isAiPowered: res.isAiPowered || false,
           createdAt: Date.now()
         };
         await window.learningDB.savePage(page);
       }
 
       this.dom.btnStartOcr.disabled = false;
-      this.showToast('Full Chapter scanned & saved successfully! 🎉');
+      const aiMsg = ocrResults[0]?.isAiPowered ? '✨ AI-scanned & saved! 🎉' : 'Full Chapter scanned & saved! 🎉';
+      this.showToast(aiMsg);
       this.openChapterReader(chapter);
 
     } else {
@@ -710,13 +739,14 @@ class KidsLearningApp {
       const tempPages = [];
       for (let i = 0; i < ocrResults.length; i++) {
         const res = ocrResults[i];
-        const translatedHi = await window.translationEngine.translateToHindi(res.text);
+        const translatedHi = res.textHi || await window.translationEngine.translateToHindi(res.text);
         tempPages.push({
           id: `temp_page_${i + 1}`,
           chapterId: 'temp_chap',
           pageIndex: i + 1,
           textEn: res.text,
           textHi: translatedHi,
+          isAiPowered: res.isAiPowered || false,
           createdAt: Date.now()
         });
       }
@@ -724,15 +754,61 @@ class KidsLearningApp {
       const tempChapter = {
         id: 'temp_chap',
         subjectId: null,
-        title: '⚡ Temporary Scan',
+        title: ocrResults[0]?.isAiPowered ? '✨ AI Temporary Scan' : '⚡ Temporary Scan',
         isTemporary: true
       };
 
       this.temporaryPagesData = tempPages;
       this.dom.btnStartOcr.disabled = false;
-      this.showToast('Temporary scan ready! ⚡');
+      this.showToast(ocrResults[0]?.isAiPowered ? '✨ AI scan ready!' : 'Temporary scan ready! ⚡');
       this.openTemporaryChapterReader(tempChapter, tempPages);
     }
+  }
+
+  // --- AI SETTINGS ---
+  openAiSettingsModal() {
+    this.updateAiStatusBadge();
+    const existingKey = window.geminiEngine?.getApiKey() || '';
+    if (this.dom.inputGeminiApiKey) {
+      this.dom.inputGeminiApiKey.value = existingKey ? '••••••••••••••••••••' : '';
+    }
+    this.dom.modalAiSettings.classList.add('active');
+  }
+
+  updateAiStatusBadge() {
+    if (!this.dom.aiStatusDot || !this.dom.aiStatusText) return;
+    const hasKey = window.geminiEngine?.hasApiKey();
+    const online = navigator.onLine;
+
+    if (hasKey && online) {
+      this.dom.aiStatusDot.style.background = '#22C55E';
+      this.dom.aiStatusText.textContent = '✨ AI Vision Active (Gemini 1.5 Flash)';
+    } else if (hasKey && !online) {
+      this.dom.aiStatusDot.style.background = '#F59E0B';
+      this.dom.aiStatusText.textContent = '⚡ Offline — Using Local OCR (key saved)';
+    } else {
+      this.dom.aiStatusDot.style.background = '#94A3B8';
+      this.dom.aiStatusText.textContent = 'No API Key — Using On-Device OCR';
+    }
+  }
+
+  handleSaveAiKey() {
+    const key = this.dom.inputGeminiApiKey?.value?.trim();
+    if (!key || key.startsWith('•')) {
+      this.showToast('Please paste a valid Gemini API key');
+      return;
+    }
+    window.geminiEngine.setApiKey(key);
+    this.updateAiStatusBadge();
+    this.dom.modalAiSettings.classList.remove('active');
+    this.showToast('✨ Gemini AI Vision enabled! New scans will use AI.');
+  }
+
+  handleClearAiKey() {
+    window.geminiEngine.setApiKey('');
+    if (this.dom.inputGeminiApiKey) this.dom.inputGeminiApiKey.value = '';
+    this.updateAiStatusBadge();
+    this.showToast('AI key removed. Using On-Device OCR.');
   }
 
 
