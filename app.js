@@ -111,7 +111,6 @@ class KidsLearningApp {
       btnPlayMain: document.getElementById('btnPlayMain'),
       audioAccentLabel: document.getElementById('audioAccentLabel'),
       speedBtns: document.querySelectorAll('.speed-btn'),
-      selectVoicePicker: document.getElementById('selectVoicePicker'),
 
       // Modal Add Subject
       modalAddSubject: document.getElementById('modalAddSubject'),
@@ -264,71 +263,6 @@ class KidsLearningApp {
         this.showToast(`Reading speed: ${speed}x`);
       });
     });
-
-    if (this.dom.selectVoicePicker) {
-      this.dom.selectVoicePicker.addEventListener('change', (e) => {
-        const selectedName = e.target.value;
-        window.ttsPlayer.setSelectedVoiceByName(selectedName);
-        this.showToast(`Voice changed: ${selectedName.split('-')[0]}`);
-      });
-    }
-
-    this.populateVoiceDropdown();
-  }
-
-  populateVoiceDropdown() {
-    if (!this.dom.selectVoicePicker) return;
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices || voices.length === 0) return;
-
-    this.dom.selectVoicePicker.innerHTML = '';
-
-    const englishIndiaVoices = [];
-    const hindiIndiaVoices = [];
-    const otherVoices = [];
-
-    voices.forEach(v => {
-      const lang = (v.lang || '').toLowerCase().replace('-', '_');
-      const name = (v.name || '').toLowerCase();
-
-      if (lang.includes('en_in') || name.includes('english india') || name.includes('en_in')) {
-        englishIndiaVoices.push(v);
-      } else if (lang.includes('hi_in') || lang.startsWith('hi') || name.includes('hindi india') || name.includes('hi_in')) {
-        hindiIndiaVoices.push(v);
-      } else if (lang.includes('_in') || name.includes('india')) {
-        englishIndiaVoices.push(v);
-      } else {
-        otherVoices.push(v);
-      }
-    });
-
-    const createGroup = (label, voiceList) => {
-      if (voiceList.length === 0) return;
-      const group = document.createElement('optgroup');
-      group.label = label;
-      voiceList.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v.name;
-        opt.textContent = `${v.name} (${v.lang})`;
-        group.appendChild(opt);
-      });
-      this.dom.selectVoicePicker.appendChild(group);
-    };
-
-    createGroup('🇬🇧 English India (en_IN)', englishIndiaVoices);
-    createGroup('🇮🇳 Hindi India (hi_IN)', hindiIndiaVoices);
-    createGroup('🌐 Other System Voices', otherVoices);
-
-    this.autoSelectVoiceForCurrentLanguage();
-  }
-
-  autoSelectVoiceForCurrentLanguage() {
-    if (!this.dom.selectVoicePicker) return;
-    const voice = window.ttsPlayer.getVoiceForLanguage(this.currentLanguage || 'en');
-    if (voice) {
-      this.dom.selectVoicePicker.value = voice.name;
-      window.ttsPlayer.selectedVoice = voice;
-    }
   }
 
   // --- NAVIGATION CONTROLLER ---
@@ -895,7 +829,6 @@ class KidsLearningApp {
       this.dom.audioAccentLabel.textContent = 'Hindi India (hi_IN)';
     }
 
-    this.autoSelectVoiceForCurrentLanguage();
     window.ttsPlayer.stop();
     this.updatePlayButtonState(false);
     this.renderCurrentReaderPage();
