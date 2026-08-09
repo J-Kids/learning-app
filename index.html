@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Read & Learn - Kids English & Hindi Learning App</title>
+  <meta name="description" content="Kid-friendly learning app for 2nd graders to scan textbook pages, read English & Hindi text aloud in an Indian accent, and organize by subject and chapter.">
+  <meta name="theme-color" content="#7C3AED">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- APP HEADER -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="logo-group">
+          <div class="app-icon-badge">📚</div>
+          <div>
+            <h1 class="app-title">Read & Learn</h1>
+            <p class="app-subtitle">Class 2 • English & Hindi</p>
+          </div>
+        </div>
+        <button class="btn-icon" id="btnHeaderScan" title="Scan / Upload Pages">📷</button>
+      </div>
+
+      <!-- Navigation Back Bar (Hidden on Home) -->
+      <div class="nav-back-bar" id="navBackBar" style="display: none;">
+        <button class="btn-back" id="btnNavBack">
+          <span>←</span> Back
+        </button>
+        <span id="navBreadcrumb" style="font-family: var(--font-heading); font-size: 14px; opacity: 0.9;"></span>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT VIEWS -->
+    <main class="main-content">
+
+      <!-- 1. HOME VIEW (Subjects Grid & Recent Chapters) -->
+      <section id="view-home" class="view-section active">
+        
+        <!-- Action Banner -->
+        <div class="upload-dropzone" id="quickScanBanner" style="padding: 20px; margin-bottom: 20px; background: white; border-style: solid; border-color: #E2E8F0;">
+          <span class="dropzone-icon" style="font-size: 36px; margin-bottom: 4px;">📸</span>
+          <h3 class="dropzone-title" style="font-size: 16px;">Scan or Upload Book Pages</h3>
+          <p class="dropzone-sub" style="font-size: 12px; margin-bottom: 8px;">Upload multiple photos of textbook pages to read aloud</p>
+          <button class="btn-pill" style="margin: 0 auto; background: var(--bg-gradient); color: white;">+ Add New Pages</button>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-title"><span>📂</span> Subjects</h2>
+          <button class="btn-pill" id="btnAddSubjectModal">+ New Subject</button>
+        </div>
+
+        <!-- Subjects Grid -->
+        <div class="subjects-grid" id="subjectsGrid">
+          <!-- Dynamic Subjects rendered by app.js -->
+        </div>
+
+      </section>
+
+
+      <!-- 2. SUBJECT VIEW (Chapters List) -->
+      <section id="view-subject" class="view-section">
+        <div class="section-header">
+          <h2 class="section-title" id="subjectDetailTitle"><span>📖</span> Subject Chapters</h2>
+          <button class="btn-pill" id="btnAddChapterModal">+ New Chapter</button>
+        </div>
+
+        <div class="chapters-list" id="chaptersList">
+          <!-- Dynamic Chapters list rendered by app.js -->
+        </div>
+      </section>
+
+
+      <!-- 3. SCAN & MULTI-IMAGE UPLOAD VIEW -->
+      <section id="view-scan" class="view-section">
+        <div class="section-header">
+          <h2 class="section-title"><span>📤</span> Upload & Extract Text</h2>
+        </div>
+
+        <!-- Scan Mode Selector (2 Options) -->
+        <div class="scan-mode-container" style="margin-bottom: 20px;">
+          <label class="form-label" style="font-weight: 700; font-size: 15px; margin-bottom: 10px; display: block;">Choose Scan Mode:</label>
+          <div class="scan-mode-options" id="scanModeOptions">
+            
+            <!-- Option 1: Full Chapter Scan -->
+            <div class="scan-option-card active" id="btnModeFullChapter" data-mode="full">
+              <div class="scan-option-badge">Option 1</div>
+              <div class="scan-option-icon">📚</div>
+              <div class="scan-option-content">
+                <h4>1st Scan Full Chapter</h4>
+                <p>Scan & save all textbook pages permanently to a Subject</p>
+              </div>
+              <input type="radio" id="radioModeFull" name="scanMode" value="full" checked style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
+            </div>
+
+            <!-- Option 2: Temporary Scan for 1 Page -->
+            <div class="scan-option-card" id="btnModeTempPage" data-mode="temp">
+              <div class="scan-option-badge" style="background: #FEF3C7; color: #D97706;">Option 2</div>
+              <div class="scan-option-icon">⚡</div>
+              <div class="scan-option-content">
+                <h4>2. Temporary Scan for 1 Page</h4>
+                <p>Quick read aloud for 1 page without saving to stored chapters</p>
+              </div>
+              <input type="radio" id="radioModeTemp" name="scanMode" value="temp" style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Dropzone & Multi File Input -->
+        <div class="upload-dropzone" id="uploadDropzone">
+          <span class="dropzone-icon">🖼️</span>
+          <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload or Paste Photo(s)</h3>
+          <p class="dropzone-sub" id="dropzoneSubText">Select files, drag & drop, or paste image from clipboard (Ctrl+V)</p>
+          <input type="file" id="fileInputMulti" multiple accept="image/*" style="display: none;">
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+            <button class="btn-pill" id="btnChoosePhotos">📁 Choose Photos</button>
+            <button class="btn-pill" id="btnPasteClipboard" style="background: var(--accent-pink-soft); color: var(--accent-pink);">📋 Paste Image</button>
+          </div>
+        </div>
+
+        <!-- Image Previews Grid -->
+        <div class="image-previews-grid" id="imagePreviewsGrid">
+          <!-- Thumbnails rendered dynamically -->
+        </div>
+
+        <!-- Destination Subject & Chapter Selection (Visible only in Full Chapter mode) -->
+        <div id="fullChapterFields">
+          <div class="form-group">
+            <label class="form-label" for="selectScanSubject">Select Subject</label>
+            <select id="selectScanSubject" class="form-select"></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputScanChapterTitle">Chapter Name / Title</label>
+            <input type="text" id="inputScanChapterTitle" class="form-input" placeholder="e.g. Chapter 1: The Magic Garden">
+          </div>
+        </div>
+
+        <!-- Temporary Scan Banner Notice -->
+        <div id="tempScanNotice" style="display: none; background: #FEF3C7; border: 1.5px dashed #F59E0B; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #92400E; font-size: 13px; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">⚡</span>
+          <div>
+            <strong>Temporary 1-Page Mode Active:</strong>
+            <div>Scans 1 page for instant read aloud. Will not save to database unless you choose to save later!</div>
+          </div>
+        </div>
+
+        <!-- Progress Box -->
+        <div class="progress-box" id="ocrProgressBox" style="display: none;">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; font-family: var(--font-heading);">
+            <span id="ocrProgressStatus">Processing OCR...</span>
+            <span id="ocrProgressPercent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="ocrProgressBarFill"></div>
+          </div>
+        </div>
+
+        <button class="btn-cta" id="btnStartOcr">
+          <span>✨ Extract Text & Save Chapter</span>
+        </button>
+      </section>
+
+
+      <!-- 4. CHAPTER READER VIEW (Sentence Highlighting & Dual Language) -->
+      <section id="view-chapter" class="view-section">
+        
+        <div class="reader-container">
+          <!-- Temporary Scan Header Banner -->
+          <div id="tempScanHeaderBanner" style="display: none; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span style="display: flex; align-items: center; gap: 6px;">⚡ <span>Temporary 1-Page Scan</span></span>
+            <button class="btn-pill" id="btnSaveTempToChapter" style="padding: 4px 12px; font-size: 12px; background: #F59E0B; color: white;">💾 Save to Subject</button>
+          </div>
+
+          <!-- Reader Header & Language Selector -->
+          <div class="reader-header">
+            <div>
+              <h2 class="reader-title" id="readerChapterTitle">Chapter Title</h2>
+              <span id="readerSubjectBadge" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Subject</span>
+            </div>
+
+            <!-- Language Tabs (English vs Hindi) -->
+            <div class="language-tabs">
+              <button class="lang-tab-btn active" id="btnLangEn">🇬🇧 English</button>
+              <button class="lang-tab-btn" id="btnLangHi">🇮🇳 हिंदी (Hindi)</button>
+            </div>
+          </div>
+
+          <!-- Page Indicator & Scanned Image Modal Trigger -->
+          <div class="page-image-toggle-bar">
+            <span class="page-num-indicator" id="readerPageIndicator">Page 1 of 1</span>
+            <button class="btn-pill" id="btnViewOriginalImage" style="padding: 4px 10px; font-size: 11px;">🖼️ View Photo</button>
+          </div>
+
+          <!-- Main Text Box with Sentence Highlighting -->
+          <div class="text-content-box" id="textContentBox">
+            <!-- Sentences rendered dynamically with .sentence-item spans -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <!-- FLOATING KID AUDIO PLAYER DOCK (Sticky at bottom) -->
+    <div class="audio-player-dock" id="audioPlayerDock">
+      
+      <!-- Voice Picker Row -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 4px;">
+        <span style="font-family: var(--font-heading); color: var(--text-muted); display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;">
+          <span>🗣️</span> VOICE:
+        </span>
+        <select id="selectVoicePicker" class="form-select" style="padding: 2px 8px; font-size: 11px; height: 28px; flex: 1; border-radius: var(--radius-full); background: #F1F5F9; border-color: #CBD5E1;">
+          <!-- Dynamically populated with all detected voices -->
+        </select>
+      </div>
+
+      <div class="player-controls-row">
+        
+        <!-- Speech Rate Selector -->
+        <div class="speed-control-group">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); padding-left: 4px;">SPEED</span>
+          <button class="speed-btn active" id="btnSpeedSlow" data-speed="0.7">0.7x</button>
+          <button class="speed-btn" id="btnSpeedNormal" data-speed="1.0">1.0x</button>
+          <button class="speed-btn" id="btnSpeedFast" data-speed="1.2">1.2x</button>
+        </div>
+
+        <!-- Big Play / Pause Button -->
+        <button class="play-main-btn" id="btnPlayMain" title="Read Aloud">
+          ▶
+        </button>
+
+        <!-- Indian Accent Badge -->
+        <div class="audio-accent-badge">
+          <span>🇮🇳</span>
+          <span id="audioAccentLabel">Indian Accent</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MODAL: ADD SUBJECT -->
+    <div class="modal-overlay" id="modalAddSubject">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Create New Subject</h3>
+          <button class="btn-delete-small" id="btnCloseSubjectModal">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputSubjectName">Subject Name</label>
+          <input type="text" id="inputSubjectName" class="form-input" placeholder="e.g. Moral Science, Computers">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject Icon & Color</label>
+          <div style="display: flex; gap: 10px;">
+            <select id="selectSubjectIcon" class="form-select" style="flex: 1;">
+              <option value="📖">📖 Book</option>
+              <option value="🌱">🌱 Science</option>
+              <option value="🎨">🎨 Art / Hindi</option>
+              <option value="🔢">🔢 Math</option>
+              <option value="🌍">🌍 Social</option>
+              <option value="💻">💻 Computer</option>
+              <option value="⭐">⭐ General</option>
+            </select>
+            <select id="selectSubjectTheme" class="form-select" style="flex: 1;">
+              <option value="purple">💜 Purple</option>
+              <option value="pink">💖 Pink</option>
+              <option value="green">💚 Green</option>
+              <option value="yellow">💛 Yellow</option>
+              <option value="blue">💙 Blue</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-cta" id="btnSaveSubject">Save Subject</button>
+      </div>
+    </div>
+
+    <!-- MODAL: SAVE TEMPORARY SCAN TO CHAPTER -->
+    <div class="modal-overlay" id="modalSaveTemp">
+      <div class="modal-card">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 18px; color: var(--text-dark);">💾 Save to Subject Chapter</h3>
+          <button class="btn-delete-small" id="btnCloseSaveTempModal">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="selectSaveTempSubject">Select Subject</label>
+          <select id="selectSaveTempSubject" class="form-select"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputSaveTempTitle">Chapter Name / Title</label>
+          <input type="text" id="inputSaveTempTitle" class="form-input" placeholder="e.g. Chapter 1: Quick Story">
+        </div>
+        <button class="btn-cta" id="btnConfirmSaveTemp">Save to Chapter List</button>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast-msg" id="toastMsg">Notification message</div>
+
+  </div>
+
+  <!-- Tesseract OCR Library (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- Application Modules -->
+  <script src="db.js"></script>
+  <script src="ocr.js"></script>
+  <script src="translator.js"></script>
+  <script src="tts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
