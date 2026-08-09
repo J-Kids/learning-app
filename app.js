@@ -75,6 +75,7 @@ class KidsLearningApp {
       dropzoneSubText: document.getElementById('dropzoneSubText'),
       uploadDropzone: document.getElementById('uploadDropzone'),
       btnCameraSnap: document.getElementById('btnCameraSnap'),
+      btnLiveScanner: document.getElementById('btnLiveScanner'),
       fileInputCamera: document.getElementById('fileInputCamera'),
       fileInputMulti: document.getElementById('fileInputMulti'),
       btnChoosePhotos: document.getElementById('btnChoosePhotos'),
@@ -172,6 +173,16 @@ class KidsLearningApp {
     // Camera Events
     if (this.dom.btnCameraSnap) {
       this.dom.btnCameraSnap.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Synchronously click fileInputCamera to open mobile native Camera shutter without security block
+        if (this.dom.fileInputCamera) {
+          this.dom.fileInputCamera.click();
+        }
+      });
+    }
+
+    if (this.dom.btnLiveScanner) {
+      this.dom.btnLiveScanner.addEventListener('click', (e) => {
         e.stopPropagation();
         this.openCameraView();
       });
