@@ -1,8 +1,8 @@
 /**
- * Kids Learning App - Service Worker for Offline Caching
+ * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1';
+const CACHE_NAME = 'kids-learning-v1.0.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -41,13 +41,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        return caches.match('./index.html');
-      });
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => cached || caches.match('./index.html'));
+      })
   );
 });

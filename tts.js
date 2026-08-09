@@ -76,34 +76,50 @@ class TtsPlayerEngine {
       this.voices = this.synth.getVoices();
     }
 
-    // If user explicitly picked a voice from dropdown
+    const isHindi = (langCode === 'hi');
+
+    // User selected voice check
     if (this.selectedVoice) {
-      if (langCode === 'hi' && (this.selectedVoice.lang.includes('hi') || this.selectedVoice.name.toLowerCase().includes('hindi'))) {
+      const selLang = (this.selectedVoice.lang || '').toLowerCase().replace('-', '_');
+      const selName = (this.selectedVoice.name || '').toLowerCase();
+      if (isHindi && (selLang.includes('hi') || selName.includes('hindi'))) {
         return this.selectedVoice;
-      } else if (langCode === 'en' && (this.selectedVoice.lang.includes('en') || !this.selectedVoice.lang.includes('hi'))) {
+      } else if (!isHindi && (selLang.includes('en') || !selLang.includes('hi'))) {
         return this.selectedVoice;
       }
     }
 
-    if (langCode === 'hi') {
-      // Find Hindi voice
-      const hiVoice = this.voices.find(v => 
-        v.lang === 'hi-IN' || v.lang === 'hi_IN' || v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi')
-      );
+    if (isHindi) {
+      // Find Hindi India voice (hi_IN / hi-IN / Hindi India)
+      const hiInVoice = this.voices.find(v => {
+        const lang = (v.lang || '').toLowerCase().replace('-', '_');
+        const name = (v.name || '').toLowerCase();
+        return lang === 'hi_in' || lang.startsWith('hi_in') || name.includes('hindi india') || name.includes('hi_in');
+      });
+      if (hiInVoice) return hiInVoice;
+
+      // Fallback to any Hindi voice
+      const hiVoice = this.voices.find(v => (v.lang || '').toLowerCase().startsWith('hi') || (v.name || '').toLowerCase().includes('hindi'));
       if (hiVoice) return hiVoice;
     } else {
-      // Find Indian Accent English voice (Search for en-IN or India in name)
-      const enInVoices = this.voices.filter(v => 
-        v.lang === 'en-IN' || v.lang === 'en_IN' || v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('heera') || v.name.toLowerCase().includes('ravi')
-      );
+      // Find English India voice (en_IN / en-IN / English India)
+      const enInVoice = this.voices.find(v => {
+        const lang = (v.lang || '').toLowerCase().replace('-', '_');
+        const name = (v.name || '').toLowerCase();
+        return lang === 'en_in' || lang.startsWith('en_in') || name.includes('english india') || name.includes('en_in');
+      });
+      if (enInVoice) return enInVoice;
 
-      if (enInVoices.length > 0) {
-        // Return first matching Indian English voice
-        return enInVoices[0];
-      }
-      
+      // Fallback to any Indian accent voice
+      const indianVoice = this.voices.find(v => {
+        const lang = (v.lang || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return lang.includes('in') || name.includes('india') || name.includes('heera') || name.includes('ravi');
+      });
+      if (indianVoice) return indianVoice;
+
       // Fallback to any English voice
-      const enVoice = this.voices.find(v => v.lang.startsWith('en'));
+      const enVoice = this.voices.find(v => (v.lang || '').toLowerCase().startsWith('en'));
       if (enVoice) return enVoice;
     }
     return null;

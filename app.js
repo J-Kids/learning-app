@@ -283,22 +283,24 @@ class KidsLearningApp {
 
     this.dom.selectVoicePicker.innerHTML = '';
 
-    // Group voices: Indian voices first, then others
-    const indianVoices = voices.filter(v => {
-      const name = v.name.toLowerCase();
-      const lang = v.lang.toLowerCase();
-      return (
-        lang.includes('in') ||
-        lang.includes('hi') ||
-        name.includes('india') ||
-        name.includes('heera') ||
-        name.includes('ravi') ||
-        name.includes('neerja') ||
-        name.includes('prabhat')
-      );
-    });
+    const englishIndiaVoices = [];
+    const hindiIndiaVoices = [];
+    const otherVoices = [];
 
-    const otherVoices = voices.filter(v => !indianVoices.includes(v));
+    voices.forEach(v => {
+      const lang = (v.lang || '').toLowerCase().replace('-', '_');
+      const name = (v.name || '').toLowerCase();
+
+      if (lang.includes('en_in') || name.includes('english india') || name.includes('en_in')) {
+        englishIndiaVoices.push(v);
+      } else if (lang.includes('hi_in') || lang.startsWith('hi') || name.includes('hindi india') || name.includes('hi_in')) {
+        hindiIndiaVoices.push(v);
+      } else if (lang.includes('_in') || name.includes('india')) {
+        englishIndiaVoices.push(v);
+      } else {
+        otherVoices.push(v);
+      }
+    });
 
     const createGroup = (label, voiceList) => {
       if (voiceList.length === 0) return;
@@ -313,13 +315,19 @@ class KidsLearningApp {
       this.dom.selectVoicePicker.appendChild(group);
     };
 
-    createGroup('🇮🇳 Recommended Indian Accent Voices', indianVoices);
+    createGroup('🇬🇧 English India (en_IN)', englishIndiaVoices);
+    createGroup('🇮🇳 Hindi India (hi_IN)', hindiIndiaVoices);
     createGroup('🌐 Other System Voices', otherVoices);
 
-    // Auto-select first Indian voice if available
-    if (indianVoices.length > 0) {
-      this.dom.selectVoicePicker.value = indianVoices[0].name;
-      window.ttsPlayer.setSelectedVoiceByName(indianVoices[0].name);
+    this.autoSelectVoiceForCurrentLanguage();
+  }
+
+  autoSelectVoiceForCurrentLanguage() {
+    if (!this.dom.selectVoicePicker) return;
+    const voice = window.ttsPlayer.getVoiceForLanguage(this.currentLanguage || 'en');
+    if (voice) {
+      this.dom.selectVoicePicker.value = voice.name;
+      window.ttsPlayer.selectedVoice = voice;
     }
   }
 
@@ -880,13 +888,14 @@ class KidsLearningApp {
     if (lang === 'en') {
       this.dom.btnLangEn.classList.add('active');
       this.dom.btnLangHi.classList.remove('active');
-      this.dom.audioAccentLabel.textContent = 'Indian English (en-IN)';
+      this.dom.audioAccentLabel.textContent = 'English India (en_IN)';
     } else {
       this.dom.btnLangHi.classList.add('active');
       this.dom.btnLangEn.classList.remove('active');
-      this.dom.audioAccentLabel.textContent = 'Indian Hindi (hi-IN)';
+      this.dom.audioAccentLabel.textContent = 'Hindi India (hi_IN)';
     }
 
+    this.autoSelectVoiceForCurrentLanguage();
     window.ttsPlayer.stop();
     this.updatePlayButtonState(false);
     this.renderCurrentReaderPage();
