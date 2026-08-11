@@ -17,11 +17,21 @@ export async function discoverVisionModels(apiKey) {
     const visionFlashCandidates = allModels.filter(m => {
       const lower = m.toLowerCase();
       return lower.includes('flash') &&
+             !lower.includes('2.5-flash') &&
              !lower.includes('pro') &&
              !lower.includes('tts') &&
              !lower.includes('audio') &&
              !lower.includes('embedding') &&
              !lower.includes('bison');
+    });
+
+    // Prioritize proven stable models (gemini-1.5-flash, gemini-2.0-flash)
+    visionFlashCandidates.sort((a, b) => {
+      if (a.includes('1.5-flash')) return -1;
+      if (b.includes('1.5-flash')) return 1;
+      if (a.includes('2.0-flash')) return -1;
+      if (b.includes('2.0-flash')) return 1;
+      return 0;
     });
 
     if (visionFlashCandidates.length > 0) {

@@ -126,22 +126,34 @@ Return ONLY valid JSON matching this exact structure:
     if (!keyToTest) throw new Error('No API Key provided');
 
     const discoveredModels = await discoverVisionModels(keyToTest);
-    const modelToTest = discoveredModels[0] || 'gemini-1.5-flash';
-    const endpoint = `${this.baseUrl}/${modelToTest}:generateContent?key=${keyToTest}`;
+    let lastErr = null;
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Hello' }] }]
-      })
-    });
+    for (const modelName of discoveredModels) {
+      const endpoint = `${this.baseUrl}/${modelName}:generateContent?key=${keyToTest}`;
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Hi' }] }]
+          })
+        });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        if (res.ok) {
+          console.log(`[Gemini] Test connection verified working model: ${modelName}`);
+          this.lastUsedModel = modelName;
+          return true;
+        }
+
+        const errData = await res.json().catch(() => ({}));
+        lastErr = new Error(errData?.error?.message || `Model ${modelName} returned HTTP ${res.status}`);
+        console.warn(`[Gemini] Test connection candidate ${modelName} returned error:`, lastErr.message);
+      } catch (err) {
+        lastErr = err;
+      }
     }
-    return true;
+
+    throw lastErr || new Error('Failed to connect to Google Gemini API with provided key.');
   }
 }
 
