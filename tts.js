@@ -106,19 +106,11 @@ class TtsPlayerEngine {
       const enInVoice = this.voices.find(v => {
         const lang = (v.lang || '').toLowerCase().replace('-', '_');
         const name = (v.name || '').toLowerCase();
-        return lang === 'en_in' || lang.startsWith('en_in') || name.includes('english india') || name.includes('en_in');
+        return lang === 'en_in' || lang.startsWith('en_in') || name.includes('english india');
       });
       if (enInVoice) return enInVoice;
 
-      // Fallback to any Indian accent voice
-      const indianVoice = this.voices.find(v => {
-        const lang = (v.lang || '').toLowerCase();
-        const name = (v.name || '').toLowerCase();
-        return lang.includes('in') || name.includes('india') || name.includes('heera') || name.includes('ravi');
-      });
-      if (indianVoice) return indianVoice;
-
-      // Fallback to any English voice
+      // Fallback to any English voice (en-US, en-GB, etc.) — DO NOT match hi-IN Hindi voice!
       const enVoice = this.voices.find(v => (v.lang || '').toLowerCase().startsWith('en'));
       if (enVoice) return enVoice;
     }
@@ -130,6 +122,29 @@ class TtsPlayerEngine {
     if (found) {
       this.selectedVoice = found;
     }
+  }
+
+  /**
+   * Convert standalone digits 0-20 to English words so numbers are never read as Ek, Do in English mode
+   */
+  numberToEnglishWord(numStr) {
+    const num = parseInt(numStr, 10);
+    const words = [
+      'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+      'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'
+    ];
+    if (!isNaN(num) && num >= 0 && num <= 20) {
+      return words[num];
+    }
+    return numStr;
+  }
+
+  formatTextForSpeech(text, lang = 'en') {
+    if (!text) return '';
+    if (lang === 'en') {
+      return text.replace(/\b([0-9]|1[0-9]|20)\b/g, (match) => this.numberToEnglishWord(match));
+    }
+    return text;
   }
 
   /**
@@ -145,10 +160,39 @@ class TtsPlayerEngine {
   }
 
   /**
+   * Pronounce a single word immediately on tap
+   */
+  speakSingleWord(wordText, lang = 'en') {
+    if (!wordText || !wordText.trim()) return;
+    this.stop(); // Stop ongoing sentence playback
+    const cleanWord = wordText.replace(/^[^a-zA-Z0-9\u0900-\u097F]+|[^a-zA-Z0-9\u0900-\u097F]+$/g, '');
+    if (!cleanWord) return;
+
+    const speechLang = lang || this.currentLanguage;
+    const textToSpeak = this.formatTextForSpeech(cleanWord, speechLang);
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 0.75; // Slightly slower, clear rate for individual word learning
+    utterance.pitch = 1.0;
+
+    const voice = this.getVoiceForLanguage(speechLang);
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = (speechLang === 'hi') ? 'hi-IN' : 'en-IN';
+    }
+
+    this.currentUtterance = utterance;
+    this.synth.speak(utterance);
+  }
+
+  /**
    * Start reading sentences with sentence highlighting
    */
-  speakText(fullText, lang = 'en', onSentenceHighlight = null, onEndCallback = null) {
-    this.stop();
+  speakText(fullText, lang = 'en', onSentenceHighlight = null, onEndCallback = null, startFromIndex = 0) {
+    if (this.synth) {
+      this.synth.cancel();
+    }
 
     if (!fullText || !fullText.trim()) return;
 
@@ -157,7 +201,7 @@ class TtsPlayerEngine {
     this.onEndCallback = onEndCallback;
 
     this.sentences = this.prepareSentences(fullText);
-    this.currentSentenceIndex = 0;
+    this.currentSentenceIndex = startFromIndex;
     this.isPlaying = true;
     this.isPaused = false;
 
@@ -168,6 +212,7 @@ class TtsPlayerEngine {
     if (!this.isPlaying || this.currentSentenceIndex >= this.sentences.length) {
       this.isPlaying = false;
       this.isPaused = false;
+      this.currentSentenceIndex = 0;
       if (this.onSentenceHighlight) this.onSentenceHighlight(-1);
       if (this.onEndCallback) this.onEndCallback();
       return;
@@ -179,7 +224,8 @@ class TtsPlayerEngine {
       this.onSentenceHighlight(this.currentSentenceIndex);
     }
 
-    const utterance = new SpeechSynthesisUtterance(sentenceText);
+    const textToSpeak = this.formatTextForSpeech(sentenceText, this.currentLanguage);
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.rate = this.speechRate;
     utterance.pitch = 1.0;
 
@@ -211,25 +257,27 @@ class TtsPlayerEngine {
   }
 
   pause() {
-    if (this.synth.speaking && !this.synth.paused) {
-      this.synth.pause();
-      this.isPaused = true;
+    this.isPlaying = false;
+    this.isPaused = true;
+    if (this.synth) {
+      this.synth.cancel(); // Cancel current utterance safely across all browsers
     }
   }
 
   resume() {
-    if (this.synth.paused) {
-      this.synth.resume();
-      this.isPaused = false;
-    } else if (!this.isPlaying && this.sentences.length > 0) {
+    if (this.sentences && this.sentences.length > 0 && this.currentSentenceIndex < this.sentences.length) {
       this.isPlaying = true;
+      this.isPaused = false;
       this.playNextSentence();
+    } else {
+      this.stop();
     }
   }
 
   stop() {
     this.isPlaying = false;
     this.isPaused = false;
+    this.currentSentenceIndex = 0;
     if (this.synth) {
       this.synth.cancel();
     }

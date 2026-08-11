@@ -1,0 +1,16 @@
+Pending:
+
+Done:
+    [x] Remove the label English India - now shows only 🇮🇳 flag icon (Build v1.0.6)
+    [x] AI vs Local OCR indicator - added badge above text in reader: "✨ AI Vision Scan" (purple) or "⚡ Local OCR" (grey)
+    [x] Improved canvas preprocessing - contrast binarization for coloured text extraction
+    [x] Token-level OCR cleaner - strips badge garbage while preserving words and numbers
+    [x] Fix API Test Connection model - dynamic AI Studio model discovery & connection test
+    [x] Single-word pronunciation on tap - tapping any word in reader speaks that individual word cleanly
+    [x] Header title cleanup - removed subtitle to free header space (Build v1.0.8)
+    [x] Remove paste button - removed paste option from scan dropzone UI
+    [x] Dynamic Gemini Model Discovery & 404 Fallback - app queries Google AI Studio API (`v1beta/models`) to find exact active models for your API key (Build v1.0.9)
+    [x] Active Model Display - model string (e.g. `🤖 gemini-1.5-flash`) shown on extreme right side of reader badge bar (Build v1.0.14)
+    [x] Fixed Audio Play/Pause/Resume - sentence-based pause/resume (Build v1.0.15)
+    [x] 100% Offline Local OCR - bundled local Tesseract WASM cores & language files (`tesseract-core-simd-lstm.wasm.js`, `eng.traineddata`), zero network requests needed (Build v1.0.16)
+    [x] Fixed English Number Pronunciation - numbers 0-20 in English text now always read in English ("one", "two", "eleven") instead of Hindi ("Ek", "Do") (Build v1.0.16)

@@ -14,19 +14,51 @@ class OcrEngine {
 
     if (typeof Tesseract !== 'undefined') {
       try {
-        if (progressCallback) progressCallback({ status: 'Initializing OCR Engine...', progress: 10 });
-        this.worker = await Tesseract.createWorker('eng');
+        console.log('[OCR] Initializing 100% offline Tesseract worker...');
+        if (progressCallback) progressCallback({ status: 'Initializing Offline OCR Engine...', progress: 10 });
+
+        // Use local WASM core & local traineddata language files (100% offline, zero network requests)
+        this.worker = await Tesseract.createWorker('eng', 1, {
+          workerPath: './worker.min.js',
+          corePath: './tesseract-core-simd-lstm.wasm.js',
+          langPath: './',
+          gzip: false,
+          logger: m => {
+            if (m.status === 'loading tesseract core' || m.status === 'initializing api') {
+              console.log(`[OCR] ${m.status}: ${Math.round((m.progress || 0) * 100)}%`);
+            }
+          }
+        });
+
         this.isReady = true;
-        if (progressCallback) progressCallback({ status: 'OCR Ready', progress: 20 });
+        console.log('[OCR] Offline Tesseract worker ready.');
+        if (progressCallback) progressCallback({ status: 'Offline OCR Ready', progress: 20 });
       } catch (err) {
-        console.warn('Tesseract worker init failed, using fallback OCR engine:', err);
+        console.warn('[OCR] Primary SIMD WASM worker init failed, trying non-SIMD core fallback:', err);
+        try {
+          this.worker = await Tesseract.createWorker('eng', 1, {
+            workerPath: './worker.min.js',
+            corePath: './tesseract-core-lstm.wasm.js',
+            langPath: './',
+            gzip: false
+          });
+          this.isReady = true;
+          console.log('[OCR] Offline non-SIMD Tesseract worker ready.');
+          if (progressCallback) progressCallback({ status: 'Offline OCR Ready', progress: 20 });
+        } catch (fallbackErr) {
+          console.error('[OCR] Offline Tesseract worker init failed completely:', fallbackErr);
+          this.isReady = false;
+          if (progressCallback) progressCallback({ status: `OCR init failed: ${fallbackErr.message}`, progress: 10 });
+        }
       }
+    } else {
+      console.error('[OCR] Tesseract library script not loaded.');
     }
   }
 
   /**
-   * Preprocess textbook photo using HTML5 Canvas:
-   * Converts colored background boxes and graphics into high-contrast black & white text
+   * Preprocess textbook photo using HTML5 Canvas.
+   * Enhances text contrast and filters out solid badge boxes and background paper noise.
    */
   async preprocessImageForOcr(imgSource) {
     return new Promise((resolve) => {
@@ -38,9 +70,10 @@ class OcrEngine {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
 
-          // Scale up image if resolution is small to sharpen small character fonts
-          let scale = 1.5;
-          if (img.width > 1600 || img.height > 1600) scale = 1.0;
+          // Scale image to ~1600px for optimal OCR precision
+          let scale = 1.6;
+          if (img.width > 2000 || img.height > 2000) scale = 0.8;
+          else if (img.width > 1200 || img.height > 1200) scale = 1.2;
 
           canvas.width = Math.round(img.width * scale);
           canvas.height = Math.round(img.height * scale);
@@ -49,19 +82,31 @@ class OcrEngine {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
 
-          // Grayscale & High-Contrast Adaptive Binarization
           for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
-            // Luminosity formula
+
+            // Convert RGB to Luminance (Gray)
             const gray = 0.299 * r + 0.587 * g + 0.114 * b;
 
-            // Binarize: dark text becomes pure black (0), light backgrounds become pure white (255)
-            const val = gray < 135 ? 0 : 255;
-            data[i] = val;
-            data[i + 1] = val;
-            data[i + 2] = val;
+            // Saturation
+            const rn = r / 255, gn = g / 255, bn = b / 255;
+            const max = Math.max(rn, gn, bn);
+            const min = Math.min(rn, gn, bn);
+            const saturation = max === 0 ? 0 : (max - min) / max;
+
+            let finalVal;
+            // Darker colored text → Black (0). Bright badge backgrounds & paper → White (255)
+            if (saturation > 0.20 && gray < 190) {
+              finalVal = 0;
+            } else {
+              finalVal = gray < 145 ? 0 : 255;
+            }
+
+            data[i] = finalVal;
+            data[i + 1] = finalVal;
+            data[i + 2] = finalVal;
           }
 
           ctx.putImageData(imageData, 0, 0);
@@ -91,8 +136,11 @@ class OcrEngine {
     const results = [];
     const total = images.length;
 
-    // Check if Gemini Vision AI is configured & online
-    const useGemini = window.geminiEngine && window.geminiEngine.hasApiKey() && navigator.onLine;
+    // Check if Gemini Vision AI is configured, online, and not rate-limited
+    const useGemini = window.geminiEngine &&
+      window.geminiEngine.hasApiKey() &&
+      navigator.onLine &&
+      !window.geminiEngine.isRateLimited();
 
     if (!useGemini) {
       await this.initWorker(progressCallback);
@@ -105,6 +153,7 @@ class OcrEngine {
       let extractedText = '';
       let textHi = '';
       let isAiPowered = false;
+      let aiModel = '';
 
       if (useGemini) {
         if (progressCallback) {
@@ -119,8 +168,28 @@ class OcrEngine {
           extractedText = aiResult.textEn;
           textHi = aiResult.textHi;
           isAiPowered = true;
+          aiModel = aiResult.model || '';
         } catch (err) {
-          console.warn(`Gemini AI scan failed for page ${i + 1}, falling back to Tesseract OCR:`, err);
+          // Surface the real error reason visibly in the progress box
+          let reason = err.message || 'Unknown error';
+          if (reason.startsWith('QUOTA_429:')) {
+            reason = reason.replace('QUOTA_429: ', '');
+          } else if (reason.includes('401') || reason.includes('403') || reason.includes('API_KEY')) {
+            reason = 'Invalid API key — check ⚙️ settings';
+          } else if (reason.includes('429')) {
+            reason = 'API quota exceeded — try later';
+          } else if (reason.includes('OFFLINE') || reason.includes('Failed to fetch')) {
+            reason = 'Network error — check internet';
+          }
+          console.warn(`Gemini AI error (page ${i + 1}): ${err.message}`);
+          if (progressCallback) {
+            progressCallback({
+              status: `⚠️ AI failed: ${reason}. Switching to Local OCR...`,
+              progress: startProgress
+            });
+          }
+          // Small pause so user can read the error message
+          await new Promise(r => setTimeout(r, 1500));
         }
       }
 
@@ -133,6 +202,10 @@ class OcrEngine {
         }
 
         try {
+          if (!this.isReady || !this.worker) {
+            await this.initWorker(progressCallback);
+          }
+
           const processedImg = await this.preprocessImageForOcr(originalImg);
 
           if (this.worker && this.isReady) {
@@ -153,7 +226,8 @@ class OcrEngine {
         pageIndex: i + 1,
         text: extractedText,
         textHi: textHi,
-        isAiPowered: isAiPowered
+        isAiPowered: isAiPowered,
+        model: aiModel
       });
     }
 
@@ -165,59 +239,50 @@ class OcrEngine {
   }
 
   /**
-   * Post-OCR noise cleaner: Filters out garbled OCR symbols, badges, and noise tokens
+   * Post-OCR noise cleaner: Filters out garbled badge symbols while preserving words and numbers.
    */
   cleanExtractedText(rawText) {
     if (!rawText) return 'No text found on this page. Tap edit to enter text.';
 
-    // 1. Remove common OCR noise symbols & non-speech graphics artifacts
     let clean = rawText
-      .replace(/[¢§©~|=_£\[\]\{\}\^\@\#\$\%\*\<\>\/\\]/g, ' ')
-      .replace(/\r\n/g, '\n');
+      .replace(/\r\n/g, '\n')
+      .replace(/[¢§©~|=_£\[\]\{\}\^\@\#\$\%\*\<\>\/\\]/g, ' ');
 
-    // 2. Process line by line to filter out random single-character noise lines
     const lines = clean.split('\n');
     const filteredLines = [];
 
     for (let line of lines) {
-      let trimmed = line.trim();
-      if (!trimmed) continue;
+      const tokens = line.trim().split(/\s+/);
+      const kept = [];
 
-      // Filter out garbage lines consisting of random 1-2 symbol/letter noise
-      if (trimmed.length <= 2 && !/^\d+$/.test(trimmed) && !/^[a-zA-Z]$/.test(trimmed)) {
-        continue;
+      for (const token of tokens) {
+        const t = token.replace(/^[^a-zA-Z0-9\u0900-\u097F]+|[^a-zA-Z0-9\u0900-\u097F]+$/g, '');
+        if (!t) continue;
+
+        const isNumber = /^\d+$/.test(t);
+        const alphaCount = (t.match(/[a-zA-Z\u0900-\u097F]/g) || []).length;
+        const isWord = t.length >= 2 && (alphaCount / t.length) >= 0.70;
+
+        if (isNumber || isWord) {
+          kept.push(t);
+        }
       }
 
-      // Remove leading/trailing non-word noise
-      trimmed = trimmed.replace(/^[^a-zA-Z0-9\u0900-\u097F]+|[^a-zA-Z0-9\u0900-\u097F.?!,]+$/g, '');
-
-      if (trimmed.length > 0) {
-        filteredLines.push(trimmed);
+      if (kept.length > 0) {
+        filteredLines.push(kept.join(' '));
       }
     }
 
-    const result = filteredLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    const deduped = filteredLines.filter((line, i, arr) => line !== arr[i - 1]);
+    const result = deduped.join('\n').replace(/\n{3,}/g, '\n\n').trim();
     return result || 'No clear text detected. Tap "✏️ Edit Text" to type text.';
   }
 
   async fallbackTextExtraction(imgSource) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(
-          "Spelling 1 to 20\n\n" +
-          "1 One\t11 Eleven\n" +
-          "2 Two\t12 Twelve\n" +
-          "3 Three\t13 Thirteen\n" +
-          "4 Four\t14 Fourteen\n" +
-          "5 Five\t15 Fifteen\n" +
-          "6 Six\t16 Sixteen\n" +
-          "7 Seven\t17 Seventeen\n" +
-          "8 Eight\t18 Eighteen\n" +
-          "9 Nine\t19 Nineteen\n" +
-          "10 Ten\t20 Twenty"
-        );
-      }, 1000);
-    });
+    // Tesseract failed to initialize — return an instructional message
+    // Never return hardcoded test data here
+    console.error('[OCR] fallbackTextExtraction called — Tesseract not available');
+    return 'OCR engine failed to load. Please check your internet connection and refresh the page, or tap ✏️ Edit Text to type the content manually.';
   }
 }
 

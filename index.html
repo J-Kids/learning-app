@@ -20,7 +20,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle">Class 2 • English & Hindi <span class="build-tag" id="appBuildTag">Build v1.0.5 (AI-Vision)</span></p>
+            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.16</span></p>
           </div>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -117,8 +117,8 @@
         <!-- Dropzone & Multi File Input -->
         <div class="upload-dropzone" id="uploadDropzone">
           <span class="dropzone-icon">🖼️</span>
-          <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload, Take Photo, or Paste</h3>
-          <p class="dropzone-sub" id="dropzoneSubText">Use mobile camera, upload files, drag & drop, or paste (Ctrl+V)</p>
+          <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload or Take Photo</h3>
+          <p class="dropzone-sub" id="dropzoneSubText">Use mobile camera, upload files, or drag & drop</p>
           
           <!-- Hidden Native File Inputs -->
           <input type="file" id="fileInputCamera" accept="image/*" capture="environment" style="display: none;">
@@ -128,7 +128,6 @@
             <button class="btn-pill" id="btnCameraSnap" style="background: var(--bg-gradient); color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);">📷 Camera</button>
             <button class="btn-pill" id="btnLiveScanner" style="background: var(--primary-purple-soft); color: var(--primary-purple); font-weight: 600;">🎥 Live Scanner</button>
             <button class="btn-pill" id="btnChoosePhotos">📁 Gallery</button>
-            <button class="btn-pill" id="btnPasteClipboard" style="background: var(--accent-pink-soft); color: var(--accent-pink);">📋 Paste</button>
           </div>
         </div>
 
@@ -237,10 +236,9 @@
           ▶
         </button>
 
-        <!-- Indian Accent Badge -->
-        <div class="audio-accent-badge">
-          <span>🇮🇳</span>
-          <span id="audioAccentLabel">Indian Accent</span>
+        <!-- Indian Accent Badge: flag only, no text label -->
+        <div class="audio-accent-badge" title="Indian Accent Voice">
+          <span id="audioAccentLabel">🇮🇳</span>
         </div>
       </div>
     </div>
@@ -358,10 +356,12 @@
           <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">Get a <strong>100% free</strong> API key from <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary-purple);">Google AI Studio</a>. Key is stored only on your phone.</p>
         </div>
 
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <button class="btn-cta" id="btnSaveAiKey" style="flex: 1;">💾 Save Key & Enable AI</button>
           <button class="btn-pill" id="btnClearAiKey" style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
         </div>
+        <button class="btn-pill" id="btnTestAiKey" style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
+        <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
       </div>
     </div>
 
@@ -370,8 +370,11 @@
 
   </div>
 
-  <!-- Tesseract OCR Library (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- In-App Logger (FIRST — captures all errors from startup) -->
+  <script src="logger.js"></script>
+
+  <!-- Tesseract OCR Library (local — works on ngrok & mobile without CDN) -->
+  <script src="tesseract.min.js"></script>
 
   <!-- Application Modules -->
   <script src="db.js"></script>

@@ -2,7 +2,7 @@
  * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1.0.5';
+const CACHE_NAME = 'kids-learning-v1.0.16';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -11,9 +11,15 @@ const ASSETS_TO_CACHE = [
   './db.js',
   './gemini.js',
   './ocr.js',
+  './logger.js',
   './translator.js',
   './tts.js',
-  './manifest.json'
+  './manifest.json',
+  './tesseract.min.js',
+  './worker.min.js',
+  './tesseract-core-simd-lstm.wasm.js',
+  './tesseract-core-lstm.wasm.js',
+  './eng.traineddata'
 ];
 
 self.addEventListener('install', (event) => {

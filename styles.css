@@ -774,6 +774,29 @@ body {
   border-radius: 12px;
 }
 
+/* Individual Word Pronunciation Styles */
+.word-item {
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.word-item:hover {
+  background: var(--primary-purple-soft);
+  color: var(--primary-purple);
+  transform: translateY(-1px);
+}
+
+.word-item.active-word {
+  background: var(--accent-pink-soft);
+  color: var(--accent-pink);
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent-pink);
+  transform: scale(1.08);
+}
+
 /* ==========================================================================
    Kid-Friendly Audio Player Sticky Dock
    ========================================================================== */

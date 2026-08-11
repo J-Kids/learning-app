@@ -37,6 +37,15 @@ class KidsLearningApp {
 
     // Default View
     this.navigateTo('home');
+
+    // Hint: if no Gemini API key is saved on this device, show a one-time prompt
+    const hintShown = sessionStorage.getItem('ai_hint_shown');
+    if (!hintShown && window.geminiEngine && !window.geminiEngine.hasApiKey()) {
+      sessionStorage.setItem('ai_hint_shown', '1');
+      setTimeout(() => {
+        this.showToast('Tap ⚙️ to add Gemini AI key for better scanning');
+      }, 1800);
+    }
   }
 
   cacheDomElements() {
@@ -169,6 +178,10 @@ class KidsLearningApp {
     }
     if (this.dom.btnClearAiKey) {
       this.dom.btnClearAiKey.addEventListener('click', () => this.handleClearAiKey());
+    }
+    const btnTest = document.getElementById('btnTestAiKey');
+    if (btnTest) {
+      btnTest.addEventListener('click', () => this.handleTestAiKey());
     }
 
     // Modal Add Subject
@@ -724,6 +737,7 @@ class KidsLearningApp {
           textEn: res.text,
           textHi: translatedHi,
           isAiPowered: res.isAiPowered || false,
+          model: res.model || '',
           createdAt: Date.now()
         };
         await window.learningDB.savePage(page);
@@ -747,6 +761,7 @@ class KidsLearningApp {
           textEn: res.text,
           textHi: translatedHi,
           isAiPowered: res.isAiPowered || false,
+          model: res.model || '',
           createdAt: Date.now()
         });
       }
@@ -782,7 +797,7 @@ class KidsLearningApp {
 
     if (hasKey && online) {
       this.dom.aiStatusDot.style.background = '#22C55E';
-      this.dom.aiStatusText.textContent = '✨ AI Vision Active (Gemini 1.5 Flash)';
+      this.dom.aiStatusText.textContent = '✨ AI Vision Active (Gemini 2.0 Flash)';
     } else if (hasKey && !online) {
       this.dom.aiStatusDot.style.background = '#F59E0B';
       this.dom.aiStatusText.textContent = '⚡ Offline — Using Local OCR (key saved)';
@@ -808,7 +823,43 @@ class KidsLearningApp {
     window.geminiEngine.setApiKey('');
     if (this.dom.inputGeminiApiKey) this.dom.inputGeminiApiKey.value = '';
     this.updateAiStatusBadge();
+    const resultEl = document.getElementById('aiTestResult');
+    if (resultEl) resultEl.textContent = '';
     this.showToast('AI key removed. Using On-Device OCR.');
+  }
+
+  async handleTestAiKey() {
+    const key = window.geminiEngine?.getApiKey();
+    const resultEl = document.getElementById('aiTestResult');
+    const btnTest = document.getElementById('btnTestAiKey');
+
+    if (!key) {
+      if (resultEl) { resultEl.style.color = '#DC2626'; resultEl.textContent = '❌ No API key saved. Save a key first.'; }
+      return;
+    }
+    if (!navigator.onLine) {
+      if (resultEl) { resultEl.style.color = '#DC2626'; resultEl.textContent = '❌ No internet connection on this device.'; }
+      return;
+    }
+
+    if (btnTest) { btnTest.textContent = '⏳ Testing...'; btnTest.disabled = true; }
+    if (resultEl) { resultEl.style.color = '#6D28D9'; resultEl.textContent = 'Verifying API key & finding active model...'; }
+
+    try {
+      const res = await window.geminiEngine.testConnection(key);
+      if (resultEl) {
+        resultEl.style.color = '#16A34A';
+        resultEl.textContent = `✅ API key works! Active model: ${res.model}`;
+      }
+      this.updateAiStatusBadge();
+    } catch (err) {
+      if (resultEl) {
+        resultEl.style.color = '#DC2626';
+        resultEl.textContent = `❌ ${err.message}`;
+      }
+    } finally {
+      if (btnTest) { btnTest.textContent = '🔌 Test Connection'; btnTest.disabled = false; }
+    }
   }
 
 
@@ -894,6 +945,8 @@ class KidsLearningApp {
         pageIndex: i + 1,
         textEn: tempPage.textEn,
         textHi: tempPage.textHi,
+        isAiPowered: tempPage.isAiPowered || false,
+        model: tempPage.model || '',
         createdAt: Date.now()
       };
       await window.learningDB.savePage(page);
@@ -916,11 +969,11 @@ class KidsLearningApp {
     if (lang === 'en') {
       this.dom.btnLangEn.classList.add('active');
       this.dom.btnLangHi.classList.remove('active');
-      this.dom.audioAccentLabel.textContent = 'English India (en_IN)';
+      this.dom.audioAccentLabel.textContent = '🇮🇳';
     } else {
       this.dom.btnLangHi.classList.add('active');
       this.dom.btnLangEn.classList.remove('active');
-      this.dom.audioAccentLabel.textContent = 'Hindi India (hi_IN)';
+      this.dom.audioAccentLabel.textContent = '🇮🇳';
     }
 
     window.ttsPlayer.stop();
@@ -935,26 +988,84 @@ class KidsLearningApp {
     }
 
     const page = this.currentChapterPages[this.currentPageIndex];
-    this.dom.readerPageIndicator.textContent = `Page ${this.currentPageIndex + 1} of ${this.currentChapterPages.length}`;
+    const pageCount = this.currentChapterPages.length;
+    this.dom.readerPageIndicator.textContent = `Page ${this.currentPageIndex + 1} of ${pageCount}`;
+
+    // Show AI or Local OCR badge with active model name on extreme right side
+    const existingBadge = document.getElementById('pageAiBadge');
+    if (existingBadge) existingBadge.remove();
+
+    const badgeContainer = document.createElement('div');
+    badgeContainer.id = 'pageAiBadge';
+    badgeContainer.style.cssText = 'display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:10px;';
+
+    if (page.isAiPowered) {
+      const leftBadge = document.createElement('span');
+      leftBadge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#EDE9FE;color:#6D28D9;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;';
+      leftBadge.innerHTML = '&#10024; AI Vision Scan';
+
+      const rightBadge = document.createElement('span');
+      rightBadge.style.cssText = 'font-family:monospace;font-size:11px;color:#6D28D9;background:#F3E8FF;padding:3px 10px;border-radius:12px;font-weight:600;';
+      const modelName = page.model || 'gemini-1.5-flash';
+      rightBadge.innerHTML = `🤖 ${modelName}`;
+
+      badgeContainer.appendChild(leftBadge);
+      badgeContainer.appendChild(rightBadge);
+    } else {
+      const leftBadge = document.createElement('span');
+      leftBadge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#F1F5F9;color:#64748B;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;';
+      leftBadge.innerHTML = '&#9889; Local OCR';
+
+      badgeContainer.appendChild(leftBadge);
+    }
+
+    this.dom.textContentBox.before(badgeContainer);
 
     const textToDisplay = this.currentLanguage === 'hi' ? page.textHi : page.textEn;
     const sentences = window.ttsPlayer.prepareSentences(textToDisplay);
 
     this.dom.textContentBox.innerHTML = '';
     sentences.forEach((sentence, idx) => {
-      const span = document.createElement('span');
-      span.className = 'sentence-item';
-      span.dataset.index = idx;
-      span.textContent = sentence + ' ';
+      const sentenceSpan = document.createElement('span');
+      sentenceSpan.className = 'sentence-item';
+      sentenceSpan.dataset.index = idx;
       
-      // Tap sentence to read from that exact sentence!
-      span.addEventListener('click', () => {
-        window.ttsPlayer.stop();
-        window.ttsPlayer.currentSentenceIndex = idx;
-        this.startAudioPlayback();
+      // Break sentence into words and whitespace/punctuation
+      const tokens = sentence.split(/(\s+)/);
+      tokens.forEach(token => {
+        if (!token) return;
+        if (/^\s+$/.test(token)) {
+          sentenceSpan.appendChild(document.createTextNode(token));
+        } else {
+          const wordSpan = document.createElement('span');
+          wordSpan.className = 'word-item';
+          wordSpan.textContent = token;
+          wordSpan.title = 'Tap to hear word';
+
+          wordSpan.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't trigger sentence-level audio start
+            
+            // Brief visual highlight on tapped word
+            document.querySelectorAll('.word-item.active-word').forEach(w => w.classList.remove('active-word'));
+            wordSpan.classList.add('active-word');
+            setTimeout(() => wordSpan.classList.remove('active-word'), 1200);
+
+            // Pronounce word
+            window.ttsPlayer.speakSingleWord(token, this.currentLanguage);
+          });
+
+          sentenceSpan.appendChild(wordSpan);
+        }
+      });
+      sentenceSpan.appendChild(document.createTextNode(' '));
+
+      // Tap sentence whitespace/background to read sentence from here
+      sentenceSpan.addEventListener('click', (e) => {
+        if (e.target.classList.contains('word-item')) return;
+        this.startAudioPlayback(idx);
       });
 
-      this.dom.textContentBox.appendChild(span);
+      this.dom.textContentBox.appendChild(sentenceSpan);
     });
   }
 
@@ -1000,19 +1111,17 @@ class KidsLearningApp {
   // --- AUDIO PLAYBACK CONTROLLER ---
   toggleAudioPlayback() {
     if (window.ttsPlayer.isPlaying) {
-      if (window.ttsPlayer.isPaused) {
-        window.ttsPlayer.resume();
-        this.updatePlayButtonState(true);
-      } else {
-        window.ttsPlayer.pause();
-        this.updatePlayButtonState(false);
-      }
+      window.ttsPlayer.pause();
+      this.updatePlayButtonState(false);
+    } else if (window.ttsPlayer.isPaused) {
+      window.ttsPlayer.resume();
+      this.updatePlayButtonState(true);
     } else {
-      this.startAudioPlayback();
+      this.startAudioPlayback(0);
     }
   }
 
-  startAudioPlayback() {
+  startAudioPlayback(startIndex = 0) {
     if (this.currentChapterPages.length === 0) return;
     const page = this.currentChapterPages[this.currentPageIndex];
     const textToRead = this.currentLanguage === 'hi' ? page.textHi : page.textEn;
@@ -1037,7 +1146,8 @@ class KidsLearningApp {
       // End callback
       () => {
         this.updatePlayButtonState(false);
-      }
+      },
+      startIndex
     );
   }
 
