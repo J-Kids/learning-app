@@ -61,3 +61,49 @@ export class NavigationRouter {
     }
   }
 }
+
+/**
+ * Universal Modal Helper with Mobile Hardware Back Button Intercept
+ */
+export function openModal(modalElement) {
+  if (!modalElement) return;
+  modalElement.classList.add('active');
+
+  if (!modalElement.dataset.historyPushed) {
+    modalElement.dataset.historyPushed = 'true';
+    history.pushState({ modalId: modalElement.id }, '');
+  }
+
+  const popListener = () => {
+    if (modalElement.classList.contains('active')) {
+      closeModal(modalElement, false);
+    }
+  };
+
+  modalElement._popListener = popListener;
+  window.addEventListener('popstate', popListener, { once: true });
+
+  modalElement.onclick = (e) => {
+    if (e.target === modalElement) {
+      closeModal(modalElement, true);
+    }
+  };
+}
+
+export function closeModal(modalElement, triggerHistoryBack = true) {
+  if (!modalElement) return;
+
+  if (modalElement._popListener) {
+    window.removeEventListener('popstate', modalElement._popListener);
+    modalElement._popListener = null;
+  }
+
+  if (modalElement.dataset.historyPushed === 'true') {
+    delete modalElement.dataset.historyPushed;
+    if (triggerHistoryBack && history.state?.modalId === modalElement.id) {
+      history.back();
+    }
+  }
+
+  modalElement.classList.remove('active');
+}

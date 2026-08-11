@@ -3,6 +3,7 @@
  */
 
 import { geminiEngine } from '../services/gemini/gemini-engine.js';
+import { openModal, closeModal } from '../views/navigation.js';
 
 export class SettingsController {
   constructor(dom, showToastCallback) {
@@ -27,7 +28,15 @@ export class SettingsController {
   openAiSettingsModal() {
     this.dom.inputGeminiApiKey.value = geminiEngine.getApiKey();
     this.updateAiStatusBadge();
-    this.dom.modalAiSettings.classList.add('active');
+
+    const resultEl = document.getElementById('aiTestResult');
+    if (resultEl) resultEl.textContent = '';
+
+    openModal(this.dom.modalAiSettings);
+  }
+
+  closeAiSettingsModal() {
+    closeModal(this.dom.modalAiSettings);
   }
 
   handleSaveAiKey() {
@@ -38,7 +47,7 @@ export class SettingsController {
     }
     geminiEngine.setApiKey(key);
     this.updateAiStatusBadge();
-    this.dom.modalAiSettings.classList.remove('active');
+    closeModal(this.dom.modalAiSettings);
     this.showToastCallback('Gemini API Key Saved! ✨');
   }
 
@@ -46,26 +55,43 @@ export class SettingsController {
     geminiEngine.setApiKey('');
     this.dom.inputGeminiApiKey.value = '';
     this.updateAiStatusBadge();
+    const resultEl = document.getElementById('aiTestResult');
+    if (resultEl) resultEl.textContent = '';
     this.showToastCallback('API Key Cleared (Using Local OCR)');
   }
 
   async handleTestAiKey() {
     const key = this.dom.inputGeminiApiKey.value.trim();
+    const resultEl = document.getElementById('aiTestResult');
+    const btn = document.getElementById('btnTestAiKey');
+
     if (!key) {
-      alert('Please enter an API key to test.');
+      if (resultEl) {
+        resultEl.style.color = '#EF4444';
+        resultEl.textContent = '⚠️ Please enter an API key to test.';
+      }
       return;
     }
 
-    const btn = document.getElementById('btnTestAiKey');
     if (btn) btn.textContent = 'Testing...';
+    if (resultEl) {
+      resultEl.style.color = '#64748B';
+      resultEl.textContent = '⏳ Testing API connection...';
+    }
 
     try {
       await geminiEngine.testConnection(key);
-      alert('✅ Connection Successful! Gemini Vision API key is valid.');
+      if (resultEl) {
+        resultEl.style.color = '#059669';
+        resultEl.textContent = '✅ Connection Successful! Gemini API key is valid.';
+      }
     } catch (err) {
-      alert('❌ Connection Failed: ' + err.message);
+      if (resultEl) {
+        resultEl.style.color = '#EF4444';
+        resultEl.textContent = `❌ Connection Failed: ${err.message}`;
+      }
     } finally {
-      if (btn) btn.textContent = 'Test Connection';
+      if (btn) btn.textContent = '🔌 Test Connection';
     }
   }
 }

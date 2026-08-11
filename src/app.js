@@ -6,7 +6,7 @@ import { getDomElements } from './core/dom.js';
 import { AppState } from './core/state.js';
 import { logger } from './utils/logger.js';
 import { learningDB } from './services/storage/learning-db.js';
-import { NavigationRouter } from './views/navigation.js';
+import { NavigationRouter, openModal, closeModal } from './views/navigation.js';
 import { HomeViewManager } from './views/home-view.js';
 import { ScanViewManager } from './views/scan-view.js';
 import { ReaderViewManager } from './views/reader-view.js';
@@ -56,14 +56,14 @@ export class KidsLearningApp {
 
     // AI Settings Modal
     this.dom.btnHeaderAiSettings?.addEventListener('click', () => this.settingsCtrl.openAiSettingsModal());
-    this.dom.btnCloseAiSettings?.addEventListener('click', () => this.dom.modalAiSettings.classList.remove('active'));
+    this.dom.btnCloseAiSettings?.addEventListener('click', () => closeModal(this.dom.modalAiSettings));
     this.dom.btnSaveAiKey?.addEventListener('click', () => this.settingsCtrl.handleSaveAiKey());
     this.dom.btnClearAiKey?.addEventListener('click', () => this.settingsCtrl.handleClearAiKey());
     this.dom.btnTestAiKey?.addEventListener('click', () => this.settingsCtrl.handleTestAiKey());
 
     // Add Subject Modal
-    this.dom.btnAddSubjectModal?.addEventListener('click', () => this.dom.modalAddSubject.classList.add('active'));
-    this.dom.btnCloseSubjectModal?.addEventListener('click', () => this.dom.modalAddSubject.classList.remove('active'));
+    this.dom.btnAddSubjectModal?.addEventListener('click', () => openModal(this.dom.modalAddSubject));
+    this.dom.btnCloseSubjectModal?.addEventListener('click', () => closeModal(this.dom.modalAddSubject));
     this.dom.btnSaveSubject?.addEventListener('click', () => this.homeView.handleCreateSubject());
 
     // Scan Mode & Upload Events

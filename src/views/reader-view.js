@@ -7,6 +7,7 @@ import { ttsPlayer } from '../services/tts/tts-engine.js';
 import { prepareSentences } from '../services/tts/speech-formatter.js';
 import { learningDB } from '../services/storage/learning-db.js';
 import { translationEngine } from '../services/translator.js';
+import { openModal, closeModal } from './navigation.js';
 
 export class ReaderViewManager {
   constructor(dom, state, router, showToastCallback) {
@@ -119,7 +120,7 @@ export class ReaderViewManager {
     if (this.state.currentChapterPages.length === 0) return;
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
     this.dom.inputPageTextEdit.value = page.textEn || '';
-    this.dom.modalEditText.classList.add('active');
+    openModal(this.dom.modalEditText);
   }
 
   async handleSavePageTextEdit() {
@@ -134,7 +135,7 @@ export class ReaderViewManager {
       await learningDB.savePage(page);
     }
 
-    this.dom.modalEditText.classList.remove('active');
+    closeModal(this.dom.modalEditText);
     this.renderCurrentReaderPage();
     this.showToastCallback('Page text updated! ✨');
   }
