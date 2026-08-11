@@ -57,44 +57,58 @@ export class ReaderViewManager {
     `;
     this.dom.textContentBox.appendChild(badgeBar);
 
-    const sentences = prepareSentences(textToDisplay);
-    if (sentences.length === 0) {
-      this.dom.textContentBox.appendChild(document.createTextNode(textToDisplay));
-      return;
-    }
+    // Split on newlines first to preserve the line structure from the textbook image.
+    const lines = textToDisplay.split('\n');
 
-    sentences.forEach((sent, idx) => {
-      const sentenceSpan = document.createElement('span');
-      sentenceSpan.className = 'sentence-item';
+    // Build a flat list of all sentences with their original sentence index for audio playback.
+    let globalSentenceIdx = 0;
+    lines.forEach((lineText, lineIdx) => {
+      const trimmedLine = lineText.trim();
+      if (!trimmedLine) return;
 
-      const words = sent.split(/(\s+)/);
-      words.forEach(token => {
-        if (token.trim().length > 0) {
-          const wordSpan = document.createElement('span');
-          wordSpan.className = 'word-item';
-          wordSpan.textContent = token;
+      const sentences = prepareSentences(trimmedLine);
+      const lineSentences = sentences.length > 0 ? sentences : [trimmedLine];
 
-          wordSpan.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.querySelectorAll('.word-item').forEach(w => w.classList.remove('active-word'));
-            wordSpan.classList.add('active-word');
-            ttsPlayer.speakSingleWord(token, this.state.currentLanguage);
-          });
-          sentenceSpan.appendChild(wordSpan);
-        } else {
-          sentenceSpan.appendChild(document.createTextNode(token));
-        }
+      lineSentences.forEach((sent) => {
+        const sentenceSpan = document.createElement('span');
+        sentenceSpan.className = 'sentence-item';
+        const capturedIdx = globalSentenceIdx;
+
+        const words = sent.split(/(\s+)/);
+        words.forEach(token => {
+          if (token.trim().length > 0) {
+            const wordSpan = document.createElement('span');
+            wordSpan.className = 'word-item';
+            wordSpan.textContent = token;
+
+            wordSpan.addEventListener('click', (e) => {
+              e.stopPropagation();
+              document.querySelectorAll('.word-item').forEach(w => w.classList.remove('active-word'));
+              wordSpan.classList.add('active-word');
+              ttsPlayer.speakSingleWord(token, this.state.currentLanguage);
+            });
+            sentenceSpan.appendChild(wordSpan);
+          } else {
+            sentenceSpan.appendChild(document.createTextNode(token));
+          }
+        });
+
+        sentenceSpan.addEventListener('click', (e) => {
+          if (e.target.classList.contains('word-item')) return;
+          if (window.app && window.app.startAudioPlayback) {
+            window.app.startAudioPlayback(capturedIdx);
+          }
+        });
+
+        this.dom.textContentBox.appendChild(sentenceSpan);
+        this.dom.textContentBox.appendChild(document.createTextNode(' '));
+        globalSentenceIdx++;
       });
 
-      sentenceSpan.addEventListener('click', (e) => {
-        if (e.target.classList.contains('word-item')) return;
-        if (window.app && window.app.startAudioPlayback) {
-          window.app.startAudioPlayback(idx);
-        }
-      });
-
-      this.dom.textContentBox.appendChild(sentenceSpan);
-      this.dom.textContentBox.appendChild(document.createTextNode(' '));
+      // After each image line, insert a line break (except after the last line)
+      if (lineIdx < lines.length - 1) {
+        this.dom.textContentBox.appendChild(document.createElement('br'));
+      }
     });
   }
 

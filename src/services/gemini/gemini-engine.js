@@ -43,14 +43,19 @@ class GeminiVisionEngine {
 You are an expert OCR and translation assistant for primary school children (Class 2).
 Analyze this textbook page image and perform the following tasks:
 1. Extract ALL printed text on the page accurately into English ("textEn").
+   CRITICAL: Preserve the original line structure from the image EXACTLY.
+   - Each visual line of text in the image MUST appear on its own new line (\n) in "textEn".
+   - Do NOT merge multiple lines into a single paragraph or sentence.
+   - Numbered or bulleted items must each be on their own separate line.
 2. Translate the full extracted text into simple, easy-to-understand Hindi suitable for a Class 2 kid ("textHi").
+   Apply the same line-preservation rule: each line in "textEn" should have a corresponding line in "textHi".
 3. Suggest a short 2-4 word Chapter Title for this page ("title").
 
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Page Title Here",
-  "textEn": "Full extracted English text here...",
-  "textHi": "पूरा हिंदी अनुवाद यहाँ..."
+  "textEn": "Line one\nLine two\nLine three",
+  "textHi": "पंक्ति एक\nपंक्ति दो\nपंक्ति तीन"
 }
 `;
 
