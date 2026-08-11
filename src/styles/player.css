@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Kid-Friendly Audio Player Sticky Dock & Speed Control
+   ========================================================================== */
+
+.audio-player-dock {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  padding: 16px 20px 20px;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+  border-top: 3px solid var(--primary-purple-light);
+}
+
+.player-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.speed-control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #F1F5F9;
+  padding: 4px 6px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid #E2E8F0;
+}
+
+.speed-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  padding-left: 4px;
+  padding-right: 2px;
+  user-select: none;
+}
+
+.speed-step-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: white;
+  color: var(--primary-purple);
+  border-radius: 50%;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.speed-step-btn:hover:not(:disabled) {
+  background: var(--primary-purple);
+  color: white;
+  transform: scale(1.08);
+}
+
+.speed-step-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.speed-step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.speed-value-badge {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-purple);
+  min-width: 44px;
+  text-align: center;
+  user-select: none;
+}
+
+.play-main-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--bg-gradient);
+  color: white;
+  border: none;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 0px #5B21B6, 0 10px 15px rgba(124, 58, 237, 0.3);
+  transition: all 0.15s ease;
+}
+
+.play-main-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0px #5B21B6;
+}
+
+.audio-accent-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-green-soft);
+  color: #065F46;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+}

@@ -2,24 +2,45 @@
  * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1.0.16';
+const CACHE_NAME = 'kids-learning-v1.0.26';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
-  './db.js',
-  './gemini.js',
-  './ocr.js',
-  './logger.js',
-  './translator.js',
-  './tts.js',
   './manifest.json',
-  './tesseract.min.js',
-  './worker.min.js',
-  './tesseract-core-simd-lstm.wasm.js',
-  './tesseract-core-lstm.wasm.js',
-  './eng.traineddata'
+  './lib/tesseract/tesseract.min.js',
+  './lib/tesseract/worker.min.js',
+  './lib/tesseract/tesseract-core-simd-lstm.wasm.js',
+  './lib/tesseract/tesseract-core-lstm.wasm.js',
+  './lib/tesseract/eng.traineddata',
+  './src/app.js',
+  './src/core/dom.js',
+  './src/core/state.js',
+  './src/utils/logger.js',
+  './src/styles/main.css',
+  './src/styles/base.css',
+  './src/styles/header.css',
+  './src/styles/views.css',
+  './src/styles/reader.css',
+  './src/styles/player.css',
+  './src/styles/modals.css',
+  './src/services/storage/learning-db.js',
+  './src/services/translator.js',
+  './src/services/gemini/image-utils.js',
+  './src/services/gemini/model-discovery.js',
+  './src/services/gemini/response-parser.js',
+  './src/services/gemini/gemini-engine.js',
+  './src/services/ocr/image-preprocessor.js',
+  './src/services/ocr/text-cleaner.js',
+  './src/services/ocr/ocr-engine.js',
+  './src/services/tts/voice-manager.js',
+  './src/services/tts/speech-formatter.js',
+  './src/services/tts/tts-engine.js',
+  './src/views/navigation.js',
+  './src/views/home-view.js',
+  './src/views/scan-view.js',
+  './src/views/reader-view.js',
+  './src/controllers/audio-controller.js',
+  './src/controllers/settings-controller.js'
 ];
 
 self.addEventListener('install', (event) => {

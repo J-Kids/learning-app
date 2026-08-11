@@ -1,0 +1,130 @@
+/* ==========================================================================
+   Chapter Reader & Text Display with Sentence/Word Highlighting
+   ========================================================================== */
+
+.reader-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 24px;
+}
+
+.reader-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed #F1F5F9;
+}
+
+.reader-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: var(--primary-purple);
+}
+
+.language-tabs {
+  display: flex;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: var(--radius-full);
+  gap: 4px;
+}
+
+.lang-tab-btn {
+  border: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lang-tab-btn.active {
+  background: white;
+  color: var(--primary-purple);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Page Image Toggle Bar */
+.page-image-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  background: var(--primary-purple-soft);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.page-num-indicator {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  color: var(--primary-purple);
+  font-weight: 600;
+}
+
+/* Text Content Area */
+.text-content-box {
+  font-size: 19px;
+  line-height: 1.8;
+  color: var(--text-dark);
+  font-weight: 500;
+  min-height: 180px;
+  word-wrap: break-word;
+}
+
+/* Sentence Highlighting Styles */
+.sentence-item {
+  display: inline;
+  padding: 2px 6px;
+  margin: 0 2px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.sentence-item:hover {
+  background: rgba(243, 232, 255, 0.6);
+}
+
+.sentence-item.active-reading {
+  background-color: var(--highlight-bg);
+  border: 2px solid var(--highlight-border);
+  color: var(--highlight-text);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+  transform: scale(1.02);
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* Individual Word Pronunciation Styles */
+.word-item {
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.word-item:hover {
+  background: var(--primary-purple-soft);
+  color: var(--primary-purple);
+  transform: translateY(-1px);
+}
+
+.word-item.active-word {
+  background: var(--accent-pink-soft);
+  color: var(--accent-pink);
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent-pink);
+  transform: scale(1.08);
+}

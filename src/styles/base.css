@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Base Design System: Variables, Typography & Container Frame
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Color Palette */
+  --primary-purple: #7C3AED;
+  --primary-purple-light: #A78BFA;
+  --primary-purple-soft: #F3E8FF;
+  
+  --accent-pink: #EC4899;
+  --accent-pink-soft: #FCE7F3;
+  
+  --accent-yellow: #F59E0B;
+  --accent-yellow-light: #FDE68A;
+  --accent-yellow-soft: #FEF3C7;
+
+  --accent-green: #10B981;
+  --accent-green-soft: #D1FAE5;
+
+  --accent-blue: #06B6D4;
+  --accent-blue-soft: #CFFAFE;
+
+  --bg-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #D946EF 100%);
+  --bg-app: #F8FAFC;
+  --bg-card: #FFFFFF;
+  
+  --text-dark: #1E293B;
+  --text-muted: #64748B;
+  --text-light: #F8FAFC;
+  
+  --highlight-bg: #FEF08A;
+  --highlight-border: #F59E0B;
+  --highlight-text: #854D0E;
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 10px 15px -3px rgba(124, 58, 237, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(124, 58, 237, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-pop: 0 8px 0px #5B21B6;
+
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-full: 9999px;
+
+  --font-heading: 'Fredoka', cursive, sans-serif;
+  --font-body: 'Outfit', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #F1F5F9;
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Mobile Frame Wrapper */
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding: 20px;
+    background: var(--bg-gradient);
+  }
+  .app-container {
+    min-height: 92vh;
+    max-height: 92vh;
+    border-radius: 36px;
+    border: 8px solid rgba(255, 255, 255, 0.3);
+  }
+}

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Read & Learn - Kids English & Hindi Learning App</title>
-  <meta name="description" content="Kid-friendly learning app for 2nd graders to scan textbook pages, read English & Hindi text aloud in an Indian accent, and organize by subject and chapter.">
+  <meta name="description"
+    content="Kid-friendly learning app for 2nd graders to scan textbook pages, read English & Hindi text aloud in an Indian accent, and organize by subject and chapter.">
   <meta name="theme-color" content="#7C3AED">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="src/styles/main.css">
 </head>
+
 <body>
 
   <div class="app-container">
@@ -20,7 +23,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.16</span></p>
+            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.26</span></p>
           </div>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -43,13 +46,16 @@
 
       <!-- 1. HOME VIEW (Subjects Grid & Recent Chapters) -->
       <section id="view-home" class="view-section active">
-        
+
         <!-- Action Banner -->
-        <div class="upload-dropzone" id="quickScanBanner" style="padding: 20px; margin-bottom: 20px; background: white; border-style: solid; border-color: #E2E8F0;">
+        <div class="upload-dropzone" id="quickScanBanner"
+          style="padding: 20px; margin-bottom: 20px; background: white; border-style: solid; border-color: #E2E8F0;">
           <span class="dropzone-icon" style="font-size: 36px; margin-bottom: 4px;">📸</span>
           <h3 class="dropzone-title" style="font-size: 16px;">Scan or Upload Book Pages</h3>
-          <p class="dropzone-sub" style="font-size: 12px; margin-bottom: 8px;">Upload multiple photos of textbook pages to read aloud</p>
-          <button class="btn-pill" style="margin: 0 auto; background: var(--bg-gradient); color: white;">+ Add New Pages</button>
+          <p class="dropzone-sub" style="font-size: 12px; margin-bottom: 8px;">Upload multiple photos of textbook pages
+            to read aloud</p>
+          <button class="btn-pill" style="margin: 0 auto; background: var(--bg-gradient); color: white;">+ Add New
+            Pages</button>
         </div>
 
         <div class="section-header">
@@ -86,18 +92,20 @@
 
         <!-- Scan Mode Selector (2 Options) -->
         <div class="scan-mode-container" style="margin-bottom: 20px;">
-          <label class="form-label" style="font-weight: 700; font-size: 15px; margin-bottom: 10px; display: block;">Choose Scan Mode:</label>
+          <label class="form-label"
+            style="font-weight: 700; font-size: 15px; margin-bottom: 10px; display: block;">Choose Scan Mode:</label>
           <div class="scan-mode-options" id="scanModeOptions">
-            
+
             <!-- Option 1: Full Chapter Scan -->
-            <div class="scan-option-card active" id="btnModeFullChapter" data-mode="full">
-              <div class="scan-option-badge">Option 1</div>
+            <div class="scan-option-card selected" id="btnModeFullChapter" data-mode="full">
+              <div class="scan-option-badge" style="background: #EDE9FE; color: #6D28D9;">Option 1</div>
               <div class="scan-option-icon">📚</div>
               <div class="scan-option-content">
                 <h4>Full Chapter Scan</h4>
                 <p>Scan & save all textbook pages permanently to a Subject</p>
               </div>
-              <input type="radio" id="radioModeFull" name="scanMode" value="full" checked style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
+              <input type="radio" id="radioModeFull" name="scanMode" value="full" checked
+                style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
             </div>
 
             <!-- Option 2: Temporary Scan -->
@@ -108,7 +116,8 @@
                 <h4>Temporary Scan</h4>
                 <p>Quick read aloud for 1 page without saving to stored chapters</p>
               </div>
-              <input type="radio" id="radioModeTemp" name="scanMode" value="temp" style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
+              <input type="radio" id="radioModeTemp" name="scanMode" value="temp"
+                style="accent-color: var(--primary-purple); width: 18px; height: 18px; cursor: pointer;">
             </div>
 
           </div>
@@ -119,14 +128,18 @@
           <span class="dropzone-icon">🖼️</span>
           <h3 class="dropzone-title" id="dropzoneTitleText">Tap to Upload or Take Photo</h3>
           <p class="dropzone-sub" id="dropzoneSubText">Use mobile camera, upload files, or drag & drop</p>
-          
+
           <!-- Hidden Native File Inputs -->
           <input type="file" id="fileInputCamera" accept="image/*" capture="environment" style="display: none;">
           <input type="file" id="fileInputMulti" multiple accept="image/*" style="display: none;">
-          
+
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
-            <button class="btn-pill" id="btnCameraSnap" style="background: var(--bg-gradient); color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);">📷 Camera</button>
-            <button class="btn-pill" id="btnLiveScanner" style="background: var(--primary-purple-soft); color: var(--primary-purple); font-weight: 600;">🎥 Live Scanner</button>
+            <button class="btn-pill" id="btnCameraSnap"
+              style="background: var(--bg-gradient); color: white; font-weight: 700; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);">📷
+              Camera</button>
+            <button class="btn-pill" id="btnLiveScanner"
+              style="background: var(--primary-purple-soft); color: var(--primary-purple); font-weight: 600;">🎥 Live
+              Scanner</button>
             <button class="btn-pill" id="btnChoosePhotos">📁 Gallery</button>
           </div>
         </div>
@@ -145,12 +158,14 @@
 
           <div class="form-group">
             <label class="form-label" for="inputScanChapterTitle">Chapter Name / Title</label>
-            <input type="text" id="inputScanChapterTitle" class="form-input" placeholder="e.g. Chapter 1: The Magic Garden">
+            <input type="text" id="inputScanChapterTitle" class="form-input"
+              placeholder="e.g. Chapter 1: The Magic Garden">
           </div>
         </div>
 
         <!-- Temporary Scan Banner Notice -->
-        <div id="tempScanNotice" style="display: none; background: #FEF3C7; border: 1.5px dashed #F59E0B; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #92400E; font-size: 13px; align-items: center; gap: 10px;">
+        <div id="tempScanNotice"
+          style="display: none; background: #FEF3C7; border: 1.5px dashed #F59E0B; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; color: #92400E; font-size: 13px; align-items: center; gap: 10px;">
           <span style="font-size: 20px;">⚡</span>
           <div>
             <strong>Temporary 1-Page Mode Active:</strong>
@@ -160,7 +175,8 @@
 
         <!-- Progress Box -->
         <div class="progress-box" id="ocrProgressBox" style="display: none;">
-          <div style="display: flex; justify-content: space-between; font-size: 13px; font-family: var(--font-heading);">
+          <div
+            style="display: flex; justify-content: space-between; font-size: 13px; font-family: var(--font-heading);">
             <span id="ocrProgressStatus">Processing OCR...</span>
             <span id="ocrProgressPercent">0%</span>
           </div>
@@ -177,19 +193,22 @@
 
       <!-- 4. CHAPTER READER VIEW (Sentence Highlighting & Dual Language) -->
       <section id="view-chapter" class="view-section">
-        
+
         <div class="reader-container">
           <!-- Temporary Scan Header Banner -->
-          <div id="tempScanHeaderBanner" style="display: none; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div id="tempScanHeaderBanner"
+            style="display: none; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <span style="display: flex; align-items: center; gap: 6px;">⚡ <span>Temporary Scan</span></span>
-            <button class="btn-pill" id="btnSaveTempToChapter" style="padding: 4px 12px; font-size: 12px; background: #F59E0B; color: white;">💾 Save to Subject</button>
+            <button class="btn-pill" id="btnSaveTempToChapter"
+              style="padding: 4px 12px; font-size: 12px; background: #F59E0B; color: white;">💾 Save to Subject</button>
           </div>
 
           <!-- Reader Header & Language Selector -->
           <div class="reader-header">
             <div>
               <h2 class="reader-title" id="readerChapterTitle">Chapter Title</h2>
-              <span id="readerSubjectBadge" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Subject</span>
+              <span id="readerSubjectBadge"
+                style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Subject</span>
             </div>
 
             <!-- Language Tabs (English vs Hindi) -->
@@ -203,8 +222,11 @@
           <div class="page-image-toggle-bar">
             <span class="page-num-indicator" id="readerPageIndicator">Page 1 of 1</span>
             <div style="display: flex; gap: 6px;">
-              <button class="btn-pill" id="btnEditTextContent" style="padding: 4px 10px; font-size: 11px; background: white; color: var(--primary-purple);">✏️ Edit Text</button>
-              <button class="btn-pill" id="btnViewOriginalImage" style="padding: 4px 10px; font-size: 11px;">🖼️ View Photo</button>
+              <button class="btn-pill" id="btnEditTextContent"
+                style="padding: 4px 10px; font-size: 11px; background: white; color: var(--primary-purple);">✏️ Edit
+                Text</button>
+              <button class="btn-pill" id="btnViewOriginalImage" style="padding: 4px 10px; font-size: 11px;">🖼️ View
+                Photo</button>
             </div>
           </div>
 
@@ -222,13 +244,13 @@
     <!-- FLOATING KID AUDIO PLAYER DOCK (Sticky at bottom) -->
     <div class="audio-player-dock" id="audioPlayerDock">
       <div class="player-controls-row">
-        
-        <!-- Speech Rate Selector -->
+
+        <!-- YouTube-Style Speed Control (- / + from 0.1x to 2.0x) -->
         <div class="speed-control-group">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); padding-left: 4px;">SPEED</span>
-          <button class="speed-btn active" id="btnSpeedSlow" data-speed="0.7">0.7x</button>
-          <button class="speed-btn" id="btnSpeedNormal" data-speed="1.0">1.0x</button>
-          <button class="speed-btn" id="btnSpeedFast" data-speed="1.2">1.2x</button>
+          <span class="speed-label">SPEED</span>
+          <button class="speed-step-btn" id="btnSpeedDec" title="Decrease Speed">-</button>
+          <span class="speed-value-badge" id="speedValueDisplay">1.0x</span>
+          <button class="speed-step-btn" id="btnSpeedInc" title="Increase Speed">+</button>
         </div>
 
         <!-- Big Play / Pause Button -->
@@ -283,8 +305,10 @@
     <!-- MODAL: SAVE TEMPORARY SCAN TO CHAPTER -->
     <div class="modal-overlay" id="modalSaveTemp">
       <div class="modal-card">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 18px; color: var(--text-dark);">💾 Save to Subject Chapter</h3>
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 18px; color: var(--text-dark);">💾
+            Save to Subject Chapter</h3>
           <button class="btn-delete-small" id="btnCloseSaveTempModal">✕</button>
         </div>
         <div class="form-group">
@@ -302,20 +326,26 @@
     <!-- MODAL: LIVE CAMERA VIEWFINDER -->
     <div class="modal-overlay" id="modalLiveCamera">
       <div class="modal-card" style="max-width: 440px; padding: 18px; text-align: center;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">📷 Align Page & Snap Photo</h3>
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">📷
+            Align Page & Snap Photo</h3>
           <button class="btn-delete-small" id="btnCloseCameraModal">✕</button>
         </div>
-        
-        <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
-          <video id="cameraVideoFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+
+        <div
+          style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
+          <video id="cameraVideoFeed" autoplay playsinline
+            style="width: 100%; height: 100%; object-fit: cover;"></video>
           <!-- Page Framing Guide -->
-          <div style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; border: 2px dashed rgba(255,255,255,0.7); border-radius: 12px; pointer-events: none; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font-size: 12px;">
+          <div
+            style="position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; border: 2px dashed rgba(255,255,255,0.7); border-radius: 12px; pointer-events: none; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font-size: 12px;">
             Align textbook page inside frame
           </div>
         </div>
 
-        <button class="btn-cta" id="btnSnapCameraStream" style="background: var(--bg-gradient); color: white; padding: 14px;">
+        <button class="btn-cta" id="btnSnapCameraStream"
+          style="background: var(--bg-gradient); color: white; padding: 14px;">
           <span>📸 Snap Picture</span>
         </button>
       </div>
@@ -324,43 +354,69 @@
     <!-- MODAL: EDIT PAGE TEXT -->
     <div class="modal-overlay" id="modalEditText">
       <div class="modal-card" style="max-width: 440px;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✏️ Edit Page Text</h3>
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✏️
+            Edit Page Text</h3>
           <button class="btn-delete-small" id="btnCloseEditTextModal">✕</button>
         </div>
         <div class="form-group">
           <label class="form-label" for="inputPageTextEdit">Page Content (English)</label>
-          <textarea id="inputPageTextEdit" class="form-input" rows="8" style="font-family: var(--font-body); font-size: 15px; resize: vertical; line-height: 1.5;"></textarea>
+          <textarea id="inputPageTextEdit" class="form-input" rows="8"
+            style="font-family: var(--font-body); font-size: 15px; resize: vertical; line-height: 1.5;"></textarea>
         </div>
         <button class="btn-cta" id="btnSavePageTextEdit">Save & Re-translate</button>
+      </div>
+    </div>
+
+    <!-- MODAL: LIVE CAMERA STREAM -->
+    <div class="modal-overlay" id="modalCameraStream">
+      <div class="modal-card" style="max-width: 440px; padding: 20px; text-align: center;">
+        <div class="modal-header" style="margin-bottom: 14px;">
+          <h3 class="modal-title">📷 Live Camera Scanner</h3>
+          <button class="btn-close-modal" id="btnCloseCameraModal" onclick="if(window.app) window.app.scanView.stopCameraStream()">✕</button>
+        </div>
+        <div style="width: 100%; aspect-ratio: 4/3; background: #0F172A; border-radius: var(--radius-md); overflow: hidden; position: relative; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
+          <video id="videoCameraFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+        </div>
+        <button class="btn-cta" id="btnSnapCameraStream">📸 Capture Photo</button>
       </div>
     </div>
 
     <!-- MODAL: AI SETTINGS (Gemini API Key) -->
     <div class="modal-overlay" id="modalAiSettings">
       <div class="modal-card" style="max-width: 420px;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✨ AI Vision Settings</h3>
-          <button class="btn-delete-small" id="btnCloseAiSettings">✕</button>
+        <div class="modal-header"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✨
+            AI Vision Settings</h3>
+          <button class="btn-close-modal" id="btnCloseAiSettings">✕</button>
         </div>
 
         <!-- Status Badge -->
-        <div id="aiStatusBadge" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); background: #F1F5F9; margin-bottom: 16px; font-size: 13px; font-weight: 600;">
-          <span id="aiStatusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #94A3B8; display: inline-block;"></span>
+        <div id="aiStatusBadge"
+          style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); background: #F1F5F9; margin-bottom: 16px; font-size: 13px; font-weight: 600;">
+          <span id="aiStatusDot"
+            style="width: 10px; height: 10px; border-radius: 50%; background: #94A3B8; display: inline-block;"></span>
           <span id="aiStatusText">No API Key — Using On-Device OCR</span>
         </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="inputGeminiApiKey">Gemini API Key</label>
-          <input id="inputGeminiApiKey" type="password" class="form-input" placeholder="Paste your Gemini API key here..." autocomplete="off" />
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">Get a <strong>100% free</strong> API key from <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary-purple);">Google AI Studio</a>. Key is stored only on your phone.</p>
+          <input id="inputGeminiApiKey" type="password" class="form-input"
+            placeholder="Paste your Gemini API key here..." autocomplete="off" />
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">Get a <strong>100%
+              free</strong> API key from <a href="https://aistudio.google.com/" target="_blank"
+              style="color: var(--primary-purple);">Google AI Studio</a>. Key is stored only on your phone.</p>
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <button class="btn-cta" id="btnSaveAiKey" style="flex: 1;">💾 Save Key & Enable AI</button>
-          <button class="btn-pill" id="btnClearAiKey" style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
+          <button class="btn-pill" id="btnClearAiKey"
+            style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
         </div>
-        <button class="btn-pill" id="btnTestAiKey" style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
+        <button class="btn-pill" id="btnTestAiKey"
+          style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
         <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
       </div>
     </div>
@@ -370,18 +426,11 @@
 
   </div>
 
-  <!-- In-App Logger (FIRST — captures all errors from startup) -->
-  <script src="logger.js"></script>
+  <!-- Tesseract OCR Library (local worker runner) -->
+  <script src="lib/tesseract/tesseract.min.js"></script>
 
-  <!-- Tesseract OCR Library (local — works on ngrok & mobile without CDN) -->
-  <script src="tesseract.min.js"></script>
-
-  <!-- Application Modules -->
-  <script src="db.js"></script>
-  <script src="gemini.js"></script>
-  <script src="ocr.js"></script>
-  <script src="translator.js"></script>
-  <script src="tts.js"></script>
-  <script src="app.js"></script>
+  <!-- Modular PWA Application Entry Point -->
+  <script type="module" src="src/app.js"></script>
 </body>
+
 </html>
