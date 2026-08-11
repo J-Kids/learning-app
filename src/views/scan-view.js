@@ -124,6 +124,7 @@ export class ScanViewManager {
       const videoFeed = this.dom.videoCameraFeed || document.getElementById('videoCameraFeed');
       const modal = this.dom.modalCameraStream || document.getElementById('modalCameraStream');
       const btnClose = document.getElementById('btnCloseCameraModal');
+      const btnSnap = document.getElementById('btnSnapCameraStream');
 
       if (videoFeed) {
         videoFeed.srcObject = this.state.cameraStream;
@@ -140,12 +141,45 @@ export class ScanViewManager {
           this.stopCameraStream();
         };
       }
+      if (btnSnap) {
+        btnSnap.onclick = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          this.snapFrameFromCamera();
+        };
+      }
+
+      // Push history state so physical back button on mobile closes camera instead of exiting app
+      if (!this._isCameraHistoryPushed) {
+        history.pushState({ modal: 'cameraStream' }, '');
+        this._isCameraHistoryPushed = true;
+      }
+
+      this._popStateListener = () => {
+        const modalEl = this.dom.modalCameraStream || document.getElementById('modalCameraStream');
+        if (modalEl && modalEl.classList.contains('active')) {
+          this.stopCameraStream(false);
+        }
+      };
+      window.addEventListener('popstate', this._popStateListener, { once: true });
+
     } catch (err) {
       alert('Unable to access camera stream: ' + err.message);
     }
   }
 
-  stopCameraStream() {
+  stopCameraStream(triggerHistoryBack = true) {
+    if (this._popStateListener) {
+      window.removeEventListener('popstate', this._popStateListener);
+      this._popStateListener = null;
+    }
+
+    if (this._isCameraHistoryPushed) {
+      this._isCameraHistoryPushed = false;
+      if (triggerHistoryBack && history.state?.modal === 'cameraStream') {
+        history.back();
+      }
+    }
+
     if (this.state.cameraStream) {
       this.state.cameraStream.getTracks().forEach(track => track.stop());
       this.state.cameraStream = null;
@@ -164,17 +198,49 @@ export class ScanViewManager {
     const videoFeed = this.dom.videoCameraFeed || document.getElementById('videoCameraFeed');
     if (!videoFeed) return;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = videoFeed.videoWidth || 1280;
-    canvas.height = videoFeed.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+    try {
+      const canvas = document.createElement('canvas');
+      const width = videoFeed.videoWidth > 0 ? videoFeed.videoWidth : (videoFeed.clientWidth || 1280);
+      const height = videoFeed.videoHeight > 0 ? videoFeed.videoHeight : (videoFeed.clientHeight || 720);
+      canvas.width = width;
+      canvas.height = height;
 
-    canvas.toBlob((blob) => {
-      const capturedFile = new File([blob], `snap_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      this.handleFileSelection([capturedFile]);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoFeed, 0, 0, width, height);
+
+      if (canvas.toBlob) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const capturedFile = new File([blob], `snap_${Date.now()}.jpg`, { type: 'image/jpeg' });
+            this.handleFileSelection([capturedFile]);
+          } else {
+            this.fallbackSnapDataUrl(canvas);
+          }
+          this.stopCameraStream();
+        }, 'image/jpeg', 0.9);
+      } else {
+        this.fallbackSnapDataUrl(canvas);
+        this.stopCameraStream();
+      }
+    } catch (err) {
+      console.error('[Camera] Snap failed:', err);
+      alert('Camera capture failed: ' + err.message);
       this.stopCameraStream();
-    }, 'image/jpeg', 0.9);
+    }
+  }
+
+  fallbackSnapDataUrl(canvas) {
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    const capturedFile = new File([u8arr], `snap_${Date.now()}.jpg`, { type: mime });
+    this.handleFileSelection([capturedFile]);
   }
 
   async handleStartBatchOcr() {
