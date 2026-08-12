@@ -2,6 +2,8 @@ Pending:
     1. Use case 1: Say a kid wants to learn to pronounce 1 word. Then, there should be a textbox where user can enter 1 word and learn its pronounciation and its meaning in hindi.
     2. Use case 2: imagine a kid want to translate a sentence in Hindi to understand its meaning. Then there should be feature for speech to text to quickly convert his speech to text and its meaning in Hindi.
     3. English accent has been changed to great britain instead of Indian accent
+    5. Settings should be moved to left panel.
+
     
 
 
@@ -24,3 +26,5 @@ Done:
     [x] Fixed Audio Play/Pause/Resume - sentence-based pause/resume (Build v1.0.15)
     [x] 100% Offline Local OCR - bundled local Tesseract WASM cores & language files (`tesseract-core-simd-lstm.wasm.js`, `eng.traineddata`), zero network requests needed (Build v1.0.16)
     [x] Fixed English Number Pronunciation - numbers 0-20 in English text now always read in English ("one", "two", "eleven") instead of Hindi ("Ek", "Do") (Build v1.0.16)
+    [x] Fullscreen Camera & Interactive Crop - live video feed opens in full screen with viewfinder guides; post-snap phase allows dragging corner handles to crop image before scanning.
+

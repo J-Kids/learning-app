@@ -2,7 +2,7 @@
  * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1.0.30';
+const CACHE_NAME = 'kids-learning-v1.0.31';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -19,7 +19,8 @@ const ASSETS_TO_CACHE = [
   './src/styles/main.css',
   './src/styles/base.css',
   './src/styles/header.css',
-  './src/styles/views.css',
+  './src/styles/home-view.css',
+  './src/styles/scan-view.css',
   './src/styles/reader.css',
   './src/styles/player.css',
   './src/styles/modals.css',
@@ -46,7 +47,9 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => cache.add(url).catch(err => console.warn('[SW] Cache add warning for', url, err)))
+      );
     })
   );
   self.skipWaiting();
@@ -68,10 +71,13 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests (bypass POST/PUT e.g. Gemini AI calls)
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200 && event.request.url.startsWith('http')) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
         }

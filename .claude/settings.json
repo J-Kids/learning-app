@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(RnD/dev-docs/gemini/**)",
+      "Grep(RnD/dev-docs/gemini/**)",
+      "Glob(RnD/dev-docs/gemini/**)",
+      "Bash(cat RnD/dev-docs/gemini/*)",
+      "Bash(ls RnD/dev-docs/gemini/*)",
+      "Bash(find RnD/dev-docs/gemini*)"
+    ]
+  }
+}

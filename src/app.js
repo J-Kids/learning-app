@@ -78,9 +78,22 @@ export class KidsLearningApp {
       e.stopPropagation();
       this.scanView.openCameraView();
     });
-    this.dom.fileInputCamera?.addEventListener('change', (e) => this.scanView.handleFileSelection(e.target.files));
-    (this.dom.btnCloseCameraModal || document.getElementById('btnCloseCameraModal'))?.addEventListener('click', () => this.scanView.stopCameraStream());
-    (this.dom.btnSnapCameraStream || document.getElementById('btnSnapCameraStream'))?.addEventListener('click', () => this.scanView.snapFrameFromCamera());
+    (this.dom.btnCloseCameraModal || document.getElementById('btnCloseCameraModal'))?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.scanView.stopCameraStream();
+    });
+    (this.dom.btnSnapCameraStream || document.getElementById('btnSnapCameraStream'))?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.scanView.snapFrameFromCamera();
+    });
+    (this.dom.btnCropConfirm || document.getElementById('btnCropConfirm'))?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.scanView._confirmCrop();
+    });
+    (this.dom.btnCropRetake || document.getElementById('btnCropRetake'))?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.scanView._retakeFromCrop();
+    });
 
     this.dom.uploadDropzone?.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON' && !e.target.classList.contains('btn-pill')) {

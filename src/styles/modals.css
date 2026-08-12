@@ -203,3 +203,218 @@
   transform: none;
   box-shadow: none;
 }
+
+/* ==========================================================================
+   Fullscreen Camera Overlay + Crop Editor
+   ========================================================================== */
+
+.camera-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.camera-fullscreen-overlay.active {
+  display: flex;
+}
+
+/* --- Live Phase --- */
+#cameraLivePhase,
+#cameraCropPhase {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#videoCameraFeed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Semi-transparent viewfinder guide rectangle */
+.camera-viewfinder-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  aspect-ratio: 4 / 3;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Corner accents on viewfinder */
+.camera-viewfinder-guide::before,
+.camera-viewfinder-guide::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: white;
+  border-style: solid;
+}
+.camera-viewfinder-guide::before {
+  top: -2px;
+  left: -2px;
+  border-width: 3px 0 0 3px;
+  border-radius: 10px 0 0 0;
+}
+.camera-viewfinder-guide::after {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 10px 0;
+}
+
+/* --- Top Bar (Close / Retake) --- */
+.camera-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 16px 40px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+  display: flex;
+  justify-content: flex-start;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.camera-top-bar button {
+  pointer-events: auto;
+  z-index: 101;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 9px 20px;
+  border-radius: 99px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.camera-top-bar button:active {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(0.95);
+}
+
+/* --- Bottom Bar (Snap / Confirm) --- */
+.camera-bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 24px 36px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.camera-bottom-bar button {
+  pointer-events: auto;
+  z-index: 101;
+  background: white;
+  color: var(--primary-purple);
+  border: none;
+  padding: 18px 52px;
+  border-radius: 99px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.camera-bottom-bar button:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.crop-bottom-hint {
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+
+/* --- Crop Phase --- */
+#cropCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+#cropHandleOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  touch-action: none;
+}
+
+/* The visible crop selection rectangle (draggable body) */
+.crop-rect {
+  position: absolute;
+  border: 2.5px solid #A78BFA;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  touch-action: none;
+  pointer-events: auto;
+  cursor: move;
+  z-index: 11;
+}
+
+/* Crop corner handles */
+.crop-handle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: 2.5px solid #7C3AED;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  touch-action: none;
+  pointer-events: auto;
+  z-index: 12;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.crop-handle:active {
+  transform: translate(-50%, -50%) scale(1.35);
+  background: #F3E8FF;
+}
+

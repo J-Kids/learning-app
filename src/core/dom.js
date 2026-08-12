@@ -97,6 +97,12 @@ export function getDomElements() {
     btnCloseCameraModal: document.getElementById('btnCloseCameraModal'),
     videoCameraFeed: document.getElementById('videoCameraFeed'),
     btnSnapCameraStream: document.getElementById('btnSnapCameraStream'),
+    cameraLivePhase: document.getElementById('cameraLivePhase'),
+    cameraCropPhase: document.getElementById('cameraCropPhase'),
+    cropCanvas: document.getElementById('cropCanvas'),
+    cropHandleOverlay: document.getElementById('cropHandleOverlay'),
+    btnCropConfirm: document.getElementById('btnCropConfirm'),
+    btnCropRetake: document.getElementById('btnCropRetake'),
 
     modalAiSettings: document.getElementById('modalAiSettings'),
     btnHeaderAiSettings: document.getElementById('btnHeaderAiSettings'),
