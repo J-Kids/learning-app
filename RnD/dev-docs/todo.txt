@@ -1,6 +1,8 @@
 Pending:
     1. Use case 1: Say a kid wants to learn to pronounce 1 word. Then, there should be a textbox where user can enter 1 word and learn its pronounciation and its meaning in hindi.
     2. Use case 2: imagine a kid want to translate a sentence in Hindi to understand its meaning. Then there should be feature for speech to text to quickly convert his speech to text and its meaning in Hindi.
+    3. English accent has been changed to great britain instead of Indian accent
+    
 
 
 
