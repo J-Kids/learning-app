@@ -41,10 +41,9 @@ class TtsPlayerEngine {
     const voice = this.voiceManager.getVoiceForLanguage(speechLang);
     if (voice) {
       utterance.voice = voice;
-      utterance.lang = voice.lang;
-    } else {
-      utterance.lang = (speechLang === 'hi') ? 'hi-IN' : 'en-IN';
     }
+    // Enforce Indian English locale accent ('en-IN') for English speech
+    utterance.lang = (speechLang === 'hi') ? 'hi-IN' : 'en-IN';
 
     this.currentUtterance = utterance;
     this.synth.speak(utterance);
@@ -89,10 +88,9 @@ class TtsPlayerEngine {
     const voice = this.voiceManager.getVoiceForLanguage(this.currentLanguage);
     if (voice) {
       utterance.voice = voice;
-      utterance.lang = voice.lang;
-    } else {
-      utterance.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-IN';
     }
+    // Enforce Indian English locale accent ('en-IN') for English sentence speech
+    utterance.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-IN';
 
     utterance.onend = () => {
       if (this.isPlaying && !this.isPaused) {
