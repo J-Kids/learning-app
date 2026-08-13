@@ -41,7 +41,7 @@ function fixJsonNewlines(raw) {
 }
 
 export function parseAiResponse(responseText) {
-  if (!responseText) return { title: '', textEn: '', textTranslated: '' };
+  if (!responseText) return { title: '', textSource: '', textTranslated: '' };
 
   let raw = responseText.trim();
   // Strip Markdown code blocks if present (e.g. ```json ... ```)
@@ -54,15 +54,15 @@ export function parseAiResponse(responseText) {
     const json = JSON.parse(sanitized);
     return {
       title: json.title || json.chapterTitle || '',
-      textEn: json.textEn || json.englishText || json.text || '',
+      textSource: json.textSource || json.textEn || json.englishText || json.text || '',
       textTranslated: json.textTranslated || json.translation || json.textHi || json.hindiText || ''
     };
   } catch (e) {
-    // If not JSON, treat raw string as English text output
+    // If not JSON, treat raw string as the source-language text output
     console.warn('[ResponseParser] JSON.parse failed, using raw text fallback:', e.message);
     return {
       title: '',
-      textEn: raw,
+      textSource: raw,
       textTranslated: ''
     };
   }

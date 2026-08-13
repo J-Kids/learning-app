@@ -91,6 +91,7 @@ export function getDomElements() {
     modalEditText: document.getElementById('modalEditText'),
     btnCloseEditTextModal: document.getElementById('btnCloseEditTextModal'),
     inputPageTextEdit: document.getElementById('inputPageTextEdit'),
+    editTextLabel: document.getElementById('editTextLabel'),
     btnSavePageTextEdit: document.getElementById('btnSavePageTextEdit'),
 
     modalCameraStream: document.getElementById('modalCameraStream'),
@@ -110,9 +111,8 @@ export function getDomElements() {
     btnHeaderAiSettings: document.getElementById('btnHeaderAiSettings'),
     btnCloseAiSettings: document.getElementById('btnCloseAiSettings'),
     inputGeminiApiKey: document.getElementById('inputGeminiApiKey'),
-    btnSaveAiKey: document.getElementById('btnSaveAiKey'),
+    btnEnableAi: document.getElementById('btnEnableAi'),
     btnClearAiKey: document.getElementById('btnClearAiKey'),
-    btnTestAiKey: document.getElementById('btnTestAiKey'),
     aiStatusDot: document.getElementById('aiStatusDot'),
     aiStatusText: document.getElementById('aiStatusText'),
 
@@ -121,15 +121,27 @@ export function getDomElements() {
     stageAiVision: document.getElementById('stageAiVision'),
     stageLanguage: document.getElementById('stageLanguage'),
     stageVoice: document.getElementById('stageVoice'),
+    stageOffline: document.getElementById('stageOffline'),
     menuSubtitleAiVision: document.getElementById('menuSubtitleAiVision'),
     menuSubtitleLanguage: document.getElementById('menuSubtitleLanguage'),
     menuSubtitleVoice: document.getElementById('menuSubtitleVoice'),
+    menuSubtitleOffline: document.getElementById('menuSubtitleOffline'),
 
-    // Settings Panel - Translation & Voice & Offline & Logs
-    languageOptionsList: document.getElementById('languageOptionsList'),
+    // Settings Panel - Translation Language
+    sourceLanguageOptionsList: document.getElementById('sourceLanguageOptionsList'),
+    targetLanguageOptionsList: document.getElementById('targetLanguageOptionsList'),
+    languageDirectionHint: document.getElementById('languageDirectionHint'),
+
+    // Settings Panel - Voice Accent
+    rangeSpeechRate: document.getElementById('rangeSpeechRate'),
+    speechRateValue: document.getElementById('speechRateValue'),
+    btnTestVoiceSample: document.getElementById('btnTestVoiceSample'),
     voiceOptionsList: document.getElementById('voiceOptionsList'),
     voiceAccentHint: document.getElementById('voiceAccentHint'),
+
+    // Settings Panel - Offline Engine & Debug Logs
     checkPreferOffline: document.getElementById('checkPreferOffline'),
+    languagePackList: document.getElementById('languagePackList'),
     btnOpenDebugLogs: document.getElementById('btnOpenDebugLogs'),
 
     toastMsg: document.getElementById('toastMsg')

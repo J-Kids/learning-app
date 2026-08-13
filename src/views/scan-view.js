@@ -222,6 +222,7 @@ export class ScanViewManager {
     const scannedPages = [];
 
     try {
+      const sourceLangCode = translationEngine.getSourceLanguage();
       const targetLangCode = translationEngine.getTargetLanguage();
       const preferOffline = localStorage.getItem('prefer_offline_ocr') === 'true';
 
@@ -234,13 +235,14 @@ export class ScanViewManager {
           const currentPercent = Math.round(((i + (info.progress || 0) / 100) / totalImages) * 100);
           this.dom.ocrProgressPercent.textContent = `${currentPercent}%`;
           this.dom.ocrProgressBarFill.style.width = `${currentPercent}%`;
-        }, { targetLangCode, preferOffline });
+        }, { sourceLangCode, targetLangCode, preferOffline });
 
         scannedPages.push({
           pageIndex: i,
           title: result.title || `Page ${pageNum}`,
           textEn: result.textEn,
           textHi: result.textHi,
+          sourceLangCode: result.sourceLangCode || sourceLangCode,
           translatedLangCode: result.translatedLangCode || targetLangCode,
           engineUsed: result.engineUsed
         });
@@ -273,6 +275,7 @@ export class ScanViewManager {
             pageIndex: p.pageIndex,
             textEn: p.textEn,
             textHi: p.textHi,
+            sourceLangCode: p.sourceLangCode,
             translatedLangCode: p.translatedLangCode,
             engineUsed: p.engineUsed
           });

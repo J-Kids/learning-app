@@ -249,3 +249,114 @@
 .settings-switch input:checked + .settings-switch-track::before {
   transform: translateX(20px);
 }
+
+/* Subtle destructive text-link (e.g. Remove Key, demoted below the primary CTA) */
+
+.btn-text-link-danger {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 4px;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: #94A3B8;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.btn-text-link-danger:hover {
+  color: #DC2626;
+  text-decoration: underline;
+}
+
+/* Sub-group labels within a detail stage (e.g. Source / Target pickers) */
+
+.settings-option-group-label {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+/* Speech rate slider */
+
+.settings-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.settings-speed-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: #E2E8F0;
+  outline: none;
+}
+
+.settings-speed-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-gradient);
+  border: 3px solid white;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.settings-speed-row input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-purple);
+  border: 3px solid white;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.settings-speed-value {
+  flex-shrink: 0;
+  min-width: 44px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary-purple);
+}
+
+/* Offline language pack status rows */
+
+.settings-pack-row-static {
+  cursor: default;
+}
+
+.settings-pack-status {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.settings-pack-status.ready {
+  background: var(--accent-green-soft);
+  color: #047857;
+}
+
+.settings-pack-status.coming-soon {
+  background: #F1F5F9;
+  color: var(--text-muted);
+}

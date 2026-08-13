@@ -57,9 +57,8 @@ export class KidsLearningApp {
     // AI Settings Modal
     this.dom.btnHeaderAiSettings?.addEventListener('click', () => this.settingsCtrl.openSettingsPanel());
     this.dom.btnCloseAiSettings?.addEventListener('click', () => closeModal(this.dom.modalSettingsPanel));
-    this.dom.btnSaveAiKey?.addEventListener('click', () => this.settingsCtrl.handleSaveAiKey());
+    this.dom.btnEnableAi?.addEventListener('click', () => this.settingsCtrl.handleEnableAiKey());
     this.dom.btnClearAiKey?.addEventListener('click', () => this.settingsCtrl.handleClearAiKey());
-    this.dom.btnTestAiKey?.addEventListener('click', () => this.settingsCtrl.handleTestAiKey());
 
     // Add Subject Modal
     this.dom.btnAddSubjectModal?.addEventListener('click', () => openModal(this.dom.modalAddSubject));
@@ -96,7 +95,7 @@ export class KidsLearningApp {
     this.dom.btnStartOcr?.addEventListener('click', () => this.scanView.handleStartBatchOcr());
 
     // Reader View Events
-    this.dom.btnLangEn?.addEventListener('click', () => this.readerView.switchReaderLanguage('en'));
+    this.dom.btnLangEn?.addEventListener('click', () => this.readerView.switchToSourceLanguage());
     this.dom.btnLangHi?.addEventListener('click', () => this.readerView.switchToTranslatedLanguage());
     this.dom.btnEditTextContent?.addEventListener('click', () => this.readerView.openEditTextModal());
     this.dom.btnCloseEditTextModal?.addEventListener('click', () => this.dom.modalEditText.classList.remove('active'));

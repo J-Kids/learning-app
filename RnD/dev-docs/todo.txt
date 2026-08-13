@@ -1,8 +1,8 @@
 Pending:
     1. Use case 1: Say a kid wants to learn to pronounce 1 word. Then, there should be a textbox where user can enter 1 word and learn its pronounciation and its meaning in hindi.
     2. Use case 2: imagine a kid want to translate a sentence in Hindi to understand its meaning. Then there should be feature for speech to text to quickly convert his speech to text and its meaning in Hindi.
-    4. Settings should be moved to left panel.
-
+    3. Speech Recognition Input Language setting (Task 4 of RnD/dev-docs/pending-tasks/settings-panel-improvements.md) - add a "Dictate in English/Hindi/Kannada..." picker once Use Case 2 above (speech-to-text) is actually implemented. Skipped for now since there's no speech-to-text feature yet for it to configure.
+    4. 
 
 
 
@@ -25,4 +25,8 @@ Done:
     [x] Fixed English Number Pronunciation - numbers 0-20 in English text now always read in English ("one", "two", "eleven") instead of Hindi ("Ek", "Do") (Build v1.0.16)
     [x] Fullscreen Live Camera + Crop - Live Camera Scanner is now a fullscreen viewfinder with a shutter button and framing guide; after snapping, a crop step lets you drag/resize a crop box over the photo (drag to move, corner handles to resize) before confirming - "Retake" returns to the live feed without re-requesting camera permission (Build v1.0.32)
     [x] Indian English Voice Accent Enforced - Comprehensive Indian English voice matching (`en-IN` / `en_IN`, `English India`, `Heera`, `Ravi`, `Veena`, `Rishi`, `Sangeeta`) and explicit `utterance.lang = 'en-IN'` locale enforcement so fallbacks never default to British (`en-GB`) accent (Build v1.0.33)
+    [x] Settings moved to a left slide-in panel - drill-down menu (AI Vision, Translation Language, Voice Accent, Offline Engine, Debug Logs) replacing the old centered modal (Build v1.0.35)
+    [x] Independent Source/Target translation languages - any language pair (e.g. Hindi -> Kannada), not just English -> Regional; reader's first tab is now dynamically labeled per chapter instead of a fixed "English" tab
+    [x] Default speech rate slider + Test Voice Sample button in Voice Accent settings
+    [x] Offline Engine settings screen shows per-language OCR pack status (English ready, others "Coming Soon")
 

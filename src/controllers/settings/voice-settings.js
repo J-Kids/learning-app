@@ -13,6 +13,42 @@ export class VoiceSettings {
 
     this.render();
     ttsPlayer.voiceManager.onVoicesReady = () => this.render();
+    this.initSpeedControl();
+    this.initTestSampleButton();
+  }
+
+  initSpeedControl() {
+    const slider = this.dom.rangeSpeechRate;
+    if (!slider) return;
+
+    this.syncSpeedFromStorage();
+
+    slider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      if (this.dom.speechRateValue) this.dom.speechRateValue.textContent = `${value.toFixed(1)}x`;
+      if (window.app?.audioCtrl) {
+        window.app.audioCtrl.changeSpeechSpeed(value);
+      } else {
+        // No chapter open yet - just persist directly so the reader picks it up later.
+        localStorage.setItem('tts_speed', value);
+        ttsPlayer.setRate(value);
+      }
+    });
+  }
+
+  syncSpeedFromStorage() {
+    const slider = this.dom.rangeSpeechRate;
+    if (!slider) return;
+    const saved = parseFloat(localStorage.getItem('tts_speed'));
+    const value = !isNaN(saved) ? saved : 1.0;
+    slider.value = value;
+    if (this.dom.speechRateValue) this.dom.speechRateValue.textContent = `${value.toFixed(1)}x`;
+  }
+
+  initTestSampleButton() {
+    this.dom.btnTestVoiceSample?.addEventListener('click', () => {
+      ttsPlayer.speakText('Hello, welcome to Read and Learn!', 'en');
+    });
   }
 
   render() {
@@ -87,5 +123,6 @@ export class VoiceSettings {
 
   refreshOnOpen() {
     this.render();
+    this.syncSpeedFromStorage();
   }
 }

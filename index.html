@@ -23,7 +23,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.35</span></p>
+            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.38</span></p>
           </div>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -333,7 +333,7 @@
           <button class="btn-delete-small" id="btnCloseEditTextModal">✕</button>
         </div>
         <div class="form-group">
-          <label class="form-label" for="inputPageTextEdit">Page Content (English)</label>
+          <label class="form-label" for="inputPageTextEdit" id="editTextLabel">Page Content (English)</label>
           <textarea id="inputPageTextEdit" class="form-input" rows="8"
             style="font-family: var(--font-body); font-size: 15px; resize: vertical; line-height: 1.5;"></textarea>
         </div>
@@ -403,7 +403,7 @@
             <span class="settings-menu-icon" style="background: var(--accent-blue-soft);">🌐</span>
             <span class="settings-menu-text">
               <span class="settings-menu-title">Translation Language</span>
-              <span class="settings-menu-subtitle" id="menuSubtitleLanguage">Hindi</span>
+              <span class="settings-menu-subtitle" id="menuSubtitleLanguage">English → Hindi</span>
             </span>
             <span class="settings-menu-chevron">›</span>
           </button>
@@ -417,17 +417,14 @@
             <span class="settings-menu-chevron">›</span>
           </button>
 
-          <div class="settings-menu-row settings-menu-row-static">
+          <button class="settings-menu-row" data-open-stage="stageOffline">
             <span class="settings-menu-icon" style="background: var(--accent-yellow-soft);">⚡</span>
             <span class="settings-menu-text">
               <span class="settings-menu-title">Offline Engine</span>
-              <span class="settings-menu-subtitle">Always scan offline</span>
+              <span class="settings-menu-subtitle" id="menuSubtitleOffline">Off</span>
             </span>
-            <label class="settings-switch">
-              <input type="checkbox" id="checkPreferOffline">
-              <span class="settings-switch-track"></span>
-            </label>
-          </div>
+            <span class="settings-menu-chevron">›</span>
+          </button>
 
           <button class="settings-menu-row" id="btnOpenDebugLogs">
             <span class="settings-menu-icon" style="background: var(--accent-green-soft);">📋</span>
@@ -462,14 +459,9 @@
               Key is stored only on your phone.</p>
           </div>
 
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button class="btn-cta" id="btnSaveAiKey" style="flex: 1;">💾 Save Key & Enable AI</button>
-            <button class="btn-pill" id="btnClearAiKey"
-              style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
-          </div>
-          <button class="btn-pill" id="btnTestAiKey"
-            style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
+          <button class="btn-cta" id="btnEnableAi">⚡ Enable AI</button>
           <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
+          <button class="btn-text-link-danger" id="btnClearAiKey" style="display: none;">🗑️ Remove Key</button>
         </div>
 
         <!-- DETAIL stage: Translation Language -->
@@ -478,8 +470,15 @@
             <button class="btn-settings-back" data-back-to-menu>←</button>
             <h3 class="drawer-title">🌐 Translation Language</h3>
           </div>
-          <p class="settings-section-hint" style="margin-bottom: 14px;">New scans will be translated into this language. Chapters you've already scanned keep their original translation.</p>
-          <div id="languageOptionsList" class="settings-option-list"></div>
+          <p class="settings-section-hint" style="margin-bottom: 14px;">Pick the language printed on the page, and the language to translate it into. Chapters you've already scanned keep their original languages.</p>
+
+          <div class="settings-option-group-label">📖 Source (what's on the page)</div>
+          <div id="sourceLanguageOptionsList" class="settings-option-list"></div>
+
+          <div class="settings-option-group-label" style="margin-top: 16px;">🌐 Target (translate into)</div>
+          <div id="targetLanguageOptionsList" class="settings-option-list"></div>
+
+          <p class="settings-section-hint" id="languageDirectionHint" style="margin-top: 14px;"></p>
         </div>
 
         <!-- DETAIL stage: Voice Accent -->
@@ -488,8 +487,42 @@
             <button class="btn-settings-back" data-back-to-menu>←</button>
             <h3 class="drawer-title">🔊 Voice Accent</h3>
           </div>
+
+          <div class="settings-option-group-label">🎚️ Reading Speed</div>
+          <div class="settings-speed-row">
+            <input type="range" id="rangeSpeechRate" min="0.5" max="2.0" step="0.1" value="1.0" />
+            <span class="settings-speed-value" id="speechRateValue">1.0x</span>
+          </div>
+          <button class="btn-pill" id="btnTestVoiceSample"
+            style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700; margin-bottom: 16px;">🔊 Test Voice Sample</button>
+
+          <div class="settings-option-group-label">🗣️ Voice</div>
           <p class="settings-section-hint" id="voiceAccentHint" style="margin-bottom: 14px;">Auto-picks the best Indian-accent voice available on your device.</p>
           <div id="voiceOptionsList" class="settings-option-list"></div>
+        </div>
+
+        <!-- DETAIL stage: Offline Engine -->
+        <div class="settings-stage" id="stageOffline" style="display: none;">
+          <div class="drawer-header">
+            <button class="btn-settings-back" data-back-to-menu>←</button>
+            <h3 class="drawer-title">⚡ Offline Engine</h3>
+          </div>
+
+          <div class="settings-menu-row settings-menu-row-static" style="margin-bottom: 16px;">
+            <span class="settings-menu-icon" style="background: var(--accent-yellow-soft);">⚡</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">Always scan offline</span>
+              <span class="settings-menu-subtitle">Skip AI Vision, even if a key is set</span>
+            </span>
+            <label class="settings-switch">
+              <input type="checkbox" id="checkPreferOffline">
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-option-group-label">📦 Offline Language Packs</div>
+          <p class="settings-section-hint" style="margin-bottom: 12px;">Local OCR currently reads English only. Downloadable packs for other languages are coming soon.</p>
+          <div id="languagePackList" class="settings-option-list"></div>
         </div>
 
       </div>

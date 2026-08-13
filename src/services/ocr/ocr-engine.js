@@ -58,16 +58,17 @@ class OcrEngine {
     }
   }
 
-  async processSingleImage(imageSrc, progressCallback, { targetLangCode = 'hi', preferOffline = false } = {}) {
+  async processSingleImage(imageSrc, progressCallback, { sourceLangCode = 'en', targetLangCode = 'hi', preferOffline = false } = {}) {
     // 1. Try Gemini Vision AI first if API key is configured (unless the user prefers offline scanning)
     if (!preferOffline && geminiEngine.isConfigured()) {
       try {
         if (progressCallback) progressCallback({ status: 'Scanning with AI Vision Studio...', progress: 30 });
-        const aiResult = await geminiEngine.scanTextbookImage(imageSrc, targetLangCode);
+        const aiResult = await geminiEngine.scanTextbookImage(imageSrc, sourceLangCode, targetLangCode);
         return {
           title: aiResult.title || 'Scanned Page',
-          textEn: cleanExtractedText(aiResult.textEn),
-          textHi: aiResult.textTranslated || await translationEngine.translateText(aiResult.textEn, targetLangCode),
+          textEn: cleanExtractedText(aiResult.textSource),
+          textHi: aiResult.textTranslated || await translationEngine.translateText(aiResult.textSource, targetLangCode, sourceLangCode),
+          sourceLangCode,
           translatedLangCode: targetLangCode,
           engineUsed: `✨ AI Vision (${aiResult.modelUsed || 'Gemini'})`
         };
@@ -76,7 +77,12 @@ class OcrEngine {
       }
     }
 
-    // 2. Fallback to 100% Offline Local Tesseract OCR
+    // 2. Fallback to 100% Offline Local Tesseract OCR - English-only (only eng.traineddata is bundled)
+    if (sourceLangCode !== 'en') {
+      const sourceLangName = getLanguageInfo(sourceLangCode).name;
+      throw new Error(`Local OCR only reads English text. Set Source Language to English, or enable ✨ AI Vision to scan ${sourceLangName} pages.`);
+    }
+
     await this.initWorker(progressCallback);
 
     if (!this.worker) {
@@ -111,6 +117,7 @@ class OcrEngine {
       title: 'Scanned Page',
       textEn: cleanedEnglishText || 'No clear text recognized. Please try scanning again.',
       textHi: translatedText,
+      sourceLangCode: 'en',
       translatedLangCode: targetLangCode,
       engineUsed: '⚡ Local Offline OCR'
     };

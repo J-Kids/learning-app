@@ -9,6 +9,7 @@ import { openModal, closeModal } from '../views/navigation.js';
 import { AiVisionSettings } from './settings/ai-vision-settings.js';
 import { LanguageSettings } from './settings/language-settings.js';
 import { VoiceSettings } from './settings/voice-settings.js';
+import { OfflineEngineSettings } from './settings/offline-engine-settings.js';
 
 export class SettingsController {
   constructor(dom, showToastCallback) {
@@ -16,22 +17,13 @@ export class SettingsController {
     this.showToastCallback = showToastCallback;
 
     this.aiVision = new AiVisionSettings(dom, showToastCallback);
+    this.offlineEngine = new OfflineEngineSettings(dom, showToastCallback);
     this.language = new LanguageSettings(dom, showToastCallback);
     this.voice = new VoiceSettings(dom, showToastCallback);
 
     this.aiVision.updateStatusBadge();
-    this.initOfflineToggle();
     this.initDebugLogsButton();
     this.initMenuNavigation();
-  }
-
-  initOfflineToggle() {
-    if (!this.dom.checkPreferOffline) return;
-    this.dom.checkPreferOffline.checked = localStorage.getItem('prefer_offline_ocr') === 'true';
-    this.dom.checkPreferOffline.addEventListener('change', (e) => {
-      localStorage.setItem('prefer_offline_ocr', e.target.checked ? 'true' : 'false');
-      this.showToastCallback(e.target.checked ? 'Offline scanning preferred ⚡' : 'AI Vision scanning re-enabled ✨');
-    });
   }
 
   initDebugLogsButton() {
@@ -47,15 +39,31 @@ export class SettingsController {
     });
   }
 
+  get detailStages() {
+    return [this.dom.stageAiVision, this.dom.stageLanguage, this.dom.stageVoice, this.dom.stageOffline];
+  }
+
+  get stageSections() {
+    return {
+      stageAiVision: this.aiVision,
+      stageLanguage: this.language,
+      stageVoice: this.voice,
+      stageOffline: this.offlineEngine
+    };
+  }
+
   showStage(stageId) {
     this.dom.settingsMenuStage.style.display = 'none';
-    [this.dom.stageAiVision, this.dom.stageLanguage, this.dom.stageVoice].forEach(stage => {
+    this.detailStages.forEach(stage => {
       if (stage) stage.style.display = stage.id === stageId ? 'block' : 'none';
     });
+    // Re-run this section's refresh so state changed in another stage during the
+    // same panel session (e.g. toggling Offline Engine, then opening Language) shows up.
+    this.stageSections[stageId]?.refreshOnOpen();
   }
 
   showMenu() {
-    [this.dom.stageAiVision, this.dom.stageLanguage, this.dom.stageVoice].forEach(stage => {
+    this.detailStages.forEach(stage => {
       if (stage) stage.style.display = 'none';
     });
     this.dom.settingsMenuStage.style.display = 'block';
@@ -64,6 +72,7 @@ export class SettingsController {
   openSettingsPanel() {
     this.showMenu();
     this.aiVision.refreshOnOpen();
+    this.offlineEngine.refreshOnOpen();
     this.language.refreshOnOpen();
     this.voice.refreshOnOpen();
     openModal(this.dom.modalSettingsPanel);
@@ -73,17 +82,13 @@ export class SettingsController {
     closeModal(this.dom.modalSettingsPanel);
   }
 
-  handleSaveAiKey() {
-    // Unlike the old single-purpose modal, saving no longer auto-closes the panel -
+  handleEnableAiKey() {
+    // Unlike the old single-purpose modal, enabling no longer auto-closes the panel -
     // the drawer now holds four other sections the user may still want to visit.
-    this.aiVision.handleSaveKey();
+    this.aiVision.handleEnableAi();
   }
 
   handleClearAiKey() {
     this.aiVision.handleClearKey();
-  }
-
-  handleTestAiKey() {
-    this.aiVision.handleTestKey();
   }
 }

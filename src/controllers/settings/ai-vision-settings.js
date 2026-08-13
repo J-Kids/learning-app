@@ -1,6 +1,6 @@
 /**
  * AI Vision Settings Section
- * Manages the Gemini API key: save, clear, and test connection.
+ * Manages the Gemini API key: test-then-save as a single "Enable AI" action, and clear.
  */
 
 import { geminiEngine } from '../../services/gemini/gemini-engine.js';
@@ -25,6 +25,9 @@ export class AiVisionSettings {
     if (this.dom.menuSubtitleAiVision) {
       this.dom.menuSubtitleAiVision.textContent = isConfigured ? 'Active & Connected' : 'Not Configured';
     }
+    if (this.dom.btnClearAiKey) {
+      this.dom.btnClearAiKey.style.display = isConfigured ? 'inline-block' : 'none';
+    }
   }
 
   refreshOnOpen() {
@@ -33,17 +36,6 @@ export class AiVisionSettings {
 
     const resultEl = document.getElementById('aiTestResult');
     if (resultEl) resultEl.textContent = '';
-  }
-
-  handleSaveKey() {
-    const key = this.dom.inputGeminiApiKey.value.trim();
-    if (!key) {
-      alert('Please enter a valid Gemini API Key.');
-      return;
-    }
-    geminiEngine.setApiKey(key);
-    this.updateStatusBadge();
-    this.showToastCallback('Gemini API Key Saved! ✨');
   }
 
   handleClearKey() {
@@ -55,20 +47,23 @@ export class AiVisionSettings {
     this.showToastCallback('API Key Cleared (Using Local OCR)');
   }
 
-  async handleTestKey() {
+  async handleEnableAi() {
     const key = this.dom.inputGeminiApiKey.value.trim();
     const resultEl = document.getElementById('aiTestResult');
-    const btn = document.getElementById('btnTestAiKey');
+    const btn = this.dom.btnEnableAi;
 
     if (!key) {
       if (resultEl) {
         resultEl.style.color = '#EF4444';
-        resultEl.textContent = '⚠️ Please enter an API key to test.';
+        resultEl.textContent = '⚠️ Please enter an API key first.';
       }
       return;
     }
 
-    if (btn) btn.textContent = 'Testing...';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Testing...';
+    }
     if (resultEl) {
       resultEl.style.color = '#64748B';
       resultEl.textContent = '⏳ Testing API connection...';
@@ -76,17 +71,22 @@ export class AiVisionSettings {
 
     try {
       await geminiEngine.testConnection(key);
-      if (resultEl) {
-        resultEl.style.color = '#059669';
-        resultEl.textContent = '✅ Connection Successful! Gemini API key is valid.';
-      }
+      // Only persist the key once it's actually proven to work - the saved
+      // key and "verified" are the same thing now, so the badge can't lie.
+      geminiEngine.setApiKey(key);
+      this.updateStatusBadge();
+      if (resultEl) resultEl.textContent = '';
+      this.showToastCallback('AI Vision Enabled! ✨');
     } catch (err) {
       if (resultEl) {
         resultEl.style.color = '#EF4444';
         resultEl.textContent = `❌ Connection Failed: ${err.message}`;
       }
     } finally {
-      if (btn) btn.textContent = '🔌 Test Connection';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '⚡ Enable AI';
+      }
     }
   }
 }

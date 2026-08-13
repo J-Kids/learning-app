@@ -20,13 +20,19 @@ export class ReaderViewManager {
   openReaderForPages(pages, chapterTitle, isTemporary = false) {
     this.state.currentChapterPages = pages;
     this.state.currentPageIndex = 0;
-    this.state.currentLanguage = 'en';
+
+    const sourceLangCode = pages[0]?.sourceLangCode || 'en';
+    const translatedLangCode = pages[0]?.translatedLangCode || 'hi';
+    this.state.currentLanguage = sourceLangCode;
 
     this.dom.readerChapterTitle.textContent = chapterTitle;
     this.dom.btnLangEn.classList.add('active');
     this.dom.btnLangHi.classList.remove('active');
 
-    const translatedLangCode = pages[0]?.translatedLangCode || 'hi';
+    const sourceLangInfo = getLanguageInfo(sourceLangCode);
+    this.dom.btnLangEn.textContent = `${sourceLangInfo.flag} ${sourceLangInfo.name}`;
+    this.dom.btnLangEn.dataset.langCode = sourceLangCode;
+
     const langInfo = getLanguageInfo(translatedLangCode);
     this.dom.btnLangHi.textContent = `${langInfo.flag} ${langInfo.name}`;
     this.dom.btnLangHi.dataset.langCode = translatedLangCode;
@@ -47,7 +53,7 @@ export class ReaderViewManager {
     if (this.state.currentChapterPages.length === 0) return;
 
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
-    const isTranslatedTab = (this.state.currentLanguage !== 'en');
+    const isTranslatedTab = (this.state.currentLanguage !== (page.sourceLangCode || 'en'));
     const textToDisplay = isTranslatedTab ? (page.textHi || 'No translation available.') : (page.textEn || 'No text extracted.');
 
     this.dom.readerPageIndicator.textContent = `Page ${this.state.currentPageIndex + 1} of ${this.state.currentChapterPages.length}`;
@@ -121,7 +127,10 @@ export class ReaderViewManager {
     this.state.currentLanguage = lang;
     ttsPlayer.stop();
 
-    if (lang === 'en') {
+    const page = this.state.currentChapterPages[this.state.currentPageIndex];
+    const sourceLangCode = page?.sourceLangCode || 'en';
+
+    if (lang === sourceLangCode) {
       this.dom.btnLangEn.classList.add('active');
       this.dom.btnLangHi.classList.remove('active');
     } else {
@@ -135,6 +144,11 @@ export class ReaderViewManager {
     this.renderCurrentReaderPage();
   }
 
+  switchToSourceLanguage() {
+    const page = this.state.currentChapterPages[this.state.currentPageIndex];
+    this.switchReaderLanguage(page?.sourceLangCode || 'en');
+  }
+
   switchToTranslatedLanguage() {
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
     this.switchReaderLanguage(page?.translatedLangCode || 'hi');
@@ -144,16 +158,19 @@ export class ReaderViewManager {
     if (this.state.currentChapterPages.length === 0) return;
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
     this.dom.inputPageTextEdit.value = page.textEn || '';
+    if (this.dom.editTextLabel) {
+      this.dom.editTextLabel.textContent = `Page Content (${getLanguageInfo(page.sourceLangCode || 'en').name})`;
+    }
     openModal(this.dom.modalEditText);
   }
 
   async handleSavePageTextEdit() {
     if (this.state.currentChapterPages.length === 0) return;
-    const newEnText = this.dom.inputPageTextEdit.value.trim();
+    const newSourceText = this.dom.inputPageTextEdit.value.trim();
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
 
-    page.textEn = newEnText;
-    page.textHi = await translationEngine.translateText(newEnText, page.translatedLangCode || 'hi');
+    page.textEn = newSourceText;
+    page.textHi = await translationEngine.translateText(newSourceText, page.translatedLangCode || 'hi', page.sourceLangCode || 'en');
 
     if (page.id) {
       await learningDB.savePage(page);

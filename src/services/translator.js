@@ -1,9 +1,10 @@
 /**
  * Kids Learning App - MyMemory Translation Engine
- * Free API translation service: English -> user-selected target language.
+ * Free API translation service between any two user-selected languages.
  */
 
 export const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English', nativeLabel: 'EN', flag: '🇬🇧' },
   { code: 'hi', name: 'Hindi', nativeLabel: 'हिं', flag: '🇮🇳' },
   { code: 'kn', name: 'Kannada', nativeLabel: 'ಕನ್ನಡ', flag: '🇮🇳' },
   { code: 'mr', name: 'Marathi', nativeLabel: 'मराठी', flag: '🇮🇳' },
@@ -22,7 +23,18 @@ export function getLanguageInfo(code) {
 class TranslationEngine {
   constructor() {
     this.cache = new Map();
+    this.sourceLanguage = localStorage.getItem('source_language') || 'en';
     this.targetLanguage = localStorage.getItem('target_language') || 'hi';
+  }
+
+  getSourceLanguage() {
+    return this.sourceLanguage;
+  }
+
+  setSourceLanguage(code) {
+    if (!SUPPORTED_LANGUAGES.some(l => l.code === code)) return;
+    this.sourceLanguage = code;
+    localStorage.setItem('source_language', code);
   }
 
   getTargetLanguage() {
@@ -35,17 +47,17 @@ class TranslationEngine {
     localStorage.setItem('target_language', code);
   }
 
-  async translateText(englishText, targetLangCode = this.targetLanguage) {
-    if (!englishText || !englishText.trim()) return '';
+  async translateText(text, targetLangCode = this.targetLanguage, sourceLangCode = this.sourceLanguage) {
+    if (!text || !text.trim()) return '';
 
-    const cleanText = englishText.trim();
-    const cacheKey = `${targetLangCode}:${cleanText}`;
+    const cleanText = text.trim();
+    const cacheKey = `${sourceLangCode}|${targetLangCode}:${cleanText}`;
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
 
     try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=en|${targetLangCode}`;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanText)}&langpair=${sourceLangCode}|${targetLangCode}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -56,7 +68,7 @@ class TranslationEngine {
       return translated;
     } catch (error) {
       console.warn('Translation failed, returning fallback:', error);
-      return targetLangCode === 'hi' ? this.fallbackTranslate(cleanText) : cleanText;
+      return (sourceLangCode === 'en' && targetLangCode === 'hi') ? this.fallbackTranslate(cleanText) : cleanText;
     }
   }
 

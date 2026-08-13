@@ -32,31 +32,33 @@ class GeminiVisionEngine {
     return Boolean(this.apiKey && this.apiKey.length > 10);
   }
 
-  async scanTextbookImage(imageSource, targetLangCode = 'hi') {
+  async scanTextbookImage(imageSource, sourceLangCode = 'en', targetLangCode = 'hi') {
     if (!this.isConfigured()) {
       throw new Error('Gemini API Key is not set. Please set your key in AI Settings.');
     }
 
     const imagePayload = await imageToBase64(imageSource);
     const discoveredModels = await discoverVisionModels(this.apiKey);
+    const sourceLangName = getLanguageInfo(sourceLangCode).name;
     const targetLangName = getLanguageInfo(targetLangCode).name;
 
     const promptText = `
 You are an expert OCR and translation assistant for primary school children (Class 2).
+This textbook page is written in ${sourceLangName}.
 Analyze this textbook page image and perform the following tasks:
-1. Extract ALL printed text on the page accurately into English ("textEn").
+1. Extract ALL printed text on the page exactly as printed, in ${sourceLangName}, into "textSource".
    CRITICAL: Preserve the original line structure from the image EXACTLY.
-   - Each visual line of text in the image MUST appear on its own new line (\n) in "textEn".
+   - Each visual line of text in the image MUST appear on its own new line (\n) in "textSource".
    - Do NOT merge multiple lines into a single paragraph or sentence.
    - Numbered or bulleted items must each be on their own separate line.
 2. Translate the full extracted text into simple, easy-to-understand ${targetLangName} suitable for a Class 2 kid ("textTranslated").
-   Apply the same line-preservation rule: each line in "textEn" should have a corresponding line in "textTranslated".
-3. Suggest a short 2-4 word Chapter Title for this page ("title").
+   Apply the same line-preservation rule: each line in "textSource" should have a corresponding line in "textTranslated".
+3. Suggest a short 2-4 word Chapter Title for this page in English ("title").
 
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Page Title Here",
-  "textEn": "Line one\nLine two\nLine three",
+  "textSource": "Line one\nLine two\nLine three",
   "textTranslated": "Translated line one\nTranslated line two\nTranslated line three"
 }
 `;
