@@ -229,26 +229,37 @@
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
-  justify-content: center;
-  padding: 28px;
-  padding-bottom: max(28px, env(safe-area-inset-bottom));
+  padding: 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
 }
 
-.btn-snap-circle {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: white;
-  border: 4px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.95) inset;
+.btn-snap-shutter {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg-gradient);
+  color: white;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.1s ease;
+  box-shadow: var(--shadow-pop);
+  transition: all 0.15s ease;
 }
 
-.btn-snap-circle:active {
-  transform: scale(0.9);
+.btn-snap-icon {
+  font-size: 22px;
+}
+
+.btn-snap-shutter:active {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0px #5B21B6;
 }
 
 /* Crop stage */

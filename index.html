@@ -353,8 +353,11 @@
         <video id="videoCameraFeed" autoplay playsinline class="camera-fullscreen-feed"></video>
         <div class="camera-frame-guide" aria-hidden="true">Align textbook page inside frame</div>
         <div class="camera-fullscreen-controls">
-          <button class="btn-snap-circle" id="btnSnapCameraStream" title="Capture Photo" aria-label="Capture Photo"
-            onclick="if(window.app) window.app.scanView.snapFrameFromCamera()"></button>
+          <button class="btn-snap-shutter" id="btnSnapCameraStream" title="Capture Photo" aria-label="Capture Photo"
+            onclick="if(window.app) window.app.scanView.snapFrameFromCamera()">
+            <span class="btn-snap-icon">📷</span>
+            <span class="btn-snap-label">Capture Photo</span>
+          </button>
         </div>
       </div>
 
