@@ -23,7 +23,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.34</span></p>
+            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.35</span></p>
           </div>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -382,14 +382,69 @@
     <!-- MODAL: AI SETTINGS (Gemini API Key) -->
     <div class="modal-overlay drawer-left" id="modalSettingsPanel">
       <div class="drawer-panel">
-        <div class="drawer-header">
-          <h3 class="drawer-title">⚙️ Settings</h3>
-          <button class="btn-close-modal" id="btnCloseAiSettings">✕</button>
+
+        <!-- MENU (root) stage -->
+        <div class="settings-stage" id="settingsMenuStage">
+          <div class="drawer-header">
+            <h3 class="drawer-title">⚙️ Settings</h3>
+            <button class="btn-close-modal" id="btnCloseAiSettings">✕</button>
+          </div>
+
+          <button class="settings-menu-row" data-open-stage="stageAiVision">
+            <span class="settings-menu-icon" style="background: var(--primary-purple-soft);">✨</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">AI Vision</span>
+              <span class="settings-menu-subtitle" id="menuSubtitleAiVision">Not Configured</span>
+            </span>
+            <span class="settings-menu-chevron">›</span>
+          </button>
+
+          <button class="settings-menu-row" data-open-stage="stageLanguage">
+            <span class="settings-menu-icon" style="background: var(--accent-blue-soft);">🌐</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">Translation Language</span>
+              <span class="settings-menu-subtitle" id="menuSubtitleLanguage">Hindi</span>
+            </span>
+            <span class="settings-menu-chevron">›</span>
+          </button>
+
+          <button class="settings-menu-row" data-open-stage="stageVoice">
+            <span class="settings-menu-icon" style="background: var(--accent-pink-soft);">🔊</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">Voice Accent</span>
+              <span class="settings-menu-subtitle" id="menuSubtitleVoice">Auto</span>
+            </span>
+            <span class="settings-menu-chevron">›</span>
+          </button>
+
+          <div class="settings-menu-row settings-menu-row-static">
+            <span class="settings-menu-icon" style="background: var(--accent-yellow-soft);">⚡</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">Offline Engine</span>
+              <span class="settings-menu-subtitle">Always scan offline</span>
+            </span>
+            <label class="settings-switch">
+              <input type="checkbox" id="checkPreferOffline">
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <button class="settings-menu-row" id="btnOpenDebugLogs">
+            <span class="settings-menu-icon" style="background: var(--accent-green-soft);">📋</span>
+            <span class="settings-menu-text">
+              <span class="settings-menu-title">Debug Logs</span>
+              <span class="settings-menu-subtitle">View app activity log</span>
+            </span>
+            <span class="settings-menu-chevron">›</span>
+          </button>
         </div>
 
-        <!-- Section 1: AI Vision -->
-        <div class="settings-section">
-          <div class="settings-section-title"><span>✨</span> AI Vision</div>
+        <!-- DETAIL stage: AI Vision -->
+        <div class="settings-stage" id="stageAiVision" style="display: none;">
+          <div class="drawer-header">
+            <button class="btn-settings-back" data-back-to-menu>←</button>
+            <h3 class="drawer-title">✨ AI Vision</h3>
+          </div>
 
           <div id="aiStatusBadge"
             style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); background: #F1F5F9; margin-bottom: 14px; font-size: 13px; font-weight: 600;">
@@ -417,44 +472,26 @@
           <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
         </div>
 
-        <!-- Section 2: Translation & Target Language -->
-        <div class="settings-section">
-          <div class="settings-section-title"><span>🌐</span> Translation Language</div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="selectTargetLanguage">Translate scanned pages into</label>
-            <select id="selectTargetLanguage" class="form-select"></select>
-            <p class="settings-section-hint">New scans will be translated into this language. Chapters you've already scanned keep their original translation.</p>
+        <!-- DETAIL stage: Translation Language -->
+        <div class="settings-stage" id="stageLanguage" style="display: none;">
+          <div class="drawer-header">
+            <button class="btn-settings-back" data-back-to-menu>←</button>
+            <h3 class="drawer-title">🌐 Translation Language</h3>
           </div>
+          <p class="settings-section-hint" style="margin-bottom: 14px;">New scans will be translated into this language. Chapters you've already scanned keep their original translation.</p>
+          <div id="languageOptionsList" class="settings-option-list"></div>
         </div>
 
-        <!-- Section 3: Voice Accents -->
-        <div class="settings-section">
-          <div class="settings-section-title"><span>🔊</span> Voice Accent</div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="selectVoiceAccent">Reading voice</label>
-            <select id="selectVoiceAccent" class="form-select"></select>
-            <p class="settings-section-hint" id="voiceAccentHint">Auto-picks the best Indian-accent voice available on your device.</p>
+        <!-- DETAIL stage: Voice Accent -->
+        <div class="settings-stage" id="stageVoice" style="display: none;">
+          <div class="drawer-header">
+            <button class="btn-settings-back" data-back-to-menu>←</button>
+            <h3 class="drawer-title">🔊 Voice Accent</h3>
           </div>
+          <p class="settings-section-hint" id="voiceAccentHint" style="margin-bottom: 14px;">Auto-picks the best Indian-accent voice available on your device.</p>
+          <div id="voiceOptionsList" class="settings-option-list"></div>
         </div>
 
-        <!-- Section 4: Offline Engine -->
-        <div class="settings-section">
-          <div class="settings-section-title"><span>⚡</span> Offline Engine</div>
-          <div class="settings-toggle-row">
-            <span class="settings-toggle-label">Always use offline scanning</span>
-            <label class="settings-switch">
-              <input type="checkbox" id="checkPreferOffline">
-              <span class="settings-switch-track"></span>
-            </label>
-          </div>
-          <p class="settings-section-hint">Skip AI Vision even if a key is set, and scan every page with the on-device engine instead.</p>
-        </div>
-
-        <!-- Section 5: Debug Logs -->
-        <div class="settings-section" style="margin-bottom: 0;">
-          <div class="settings-section-title"><span>📋</span> Debug Logs</div>
-          <button class="btn-settings-link" id="btnOpenDebugLogs">📋 View Debug Logs</button>
-        </div>
       </div>
     </div>
 

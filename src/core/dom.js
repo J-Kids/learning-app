@@ -116,9 +116,18 @@ export function getDomElements() {
     aiStatusDot: document.getElementById('aiStatusDot'),
     aiStatusText: document.getElementById('aiStatusText'),
 
+    // Settings Panel - Menu & Stage Navigation
+    settingsMenuStage: document.getElementById('settingsMenuStage'),
+    stageAiVision: document.getElementById('stageAiVision'),
+    stageLanguage: document.getElementById('stageLanguage'),
+    stageVoice: document.getElementById('stageVoice'),
+    menuSubtitleAiVision: document.getElementById('menuSubtitleAiVision'),
+    menuSubtitleLanguage: document.getElementById('menuSubtitleLanguage'),
+    menuSubtitleVoice: document.getElementById('menuSubtitleVoice'),
+
     // Settings Panel - Translation & Voice & Offline & Logs
-    selectTargetLanguage: document.getElementById('selectTargetLanguage'),
-    selectVoiceAccent: document.getElementById('selectVoiceAccent'),
+    languageOptionsList: document.getElementById('languageOptionsList'),
+    voiceOptionsList: document.getElementById('voiceOptionsList'),
     voiceAccentHint: document.getElementById('voiceAccentHint'),
     checkPreferOffline: document.getElementById('checkPreferOffline'),
     btnOpenDebugLogs: document.getElementById('btnOpenDebugLogs'),

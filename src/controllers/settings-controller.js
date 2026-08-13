@@ -22,6 +22,7 @@ export class SettingsController {
     this.aiVision.updateStatusBadge();
     this.initOfflineToggle();
     this.initDebugLogsButton();
+    this.initMenuNavigation();
   }
 
   initOfflineToggle() {
@@ -37,7 +38,31 @@ export class SettingsController {
     this.dom.btnOpenDebugLogs?.addEventListener('click', () => logger.show());
   }
 
+  initMenuNavigation() {
+    document.querySelectorAll('#modalSettingsPanel [data-open-stage]').forEach(btn => {
+      btn.addEventListener('click', () => this.showStage(btn.dataset.openStage));
+    });
+    document.querySelectorAll('#modalSettingsPanel [data-back-to-menu]').forEach(btn => {
+      btn.addEventListener('click', () => this.showMenu());
+    });
+  }
+
+  showStage(stageId) {
+    this.dom.settingsMenuStage.style.display = 'none';
+    [this.dom.stageAiVision, this.dom.stageLanguage, this.dom.stageVoice].forEach(stage => {
+      if (stage) stage.style.display = stage.id === stageId ? 'block' : 'none';
+    });
+  }
+
+  showMenu() {
+    [this.dom.stageAiVision, this.dom.stageLanguage, this.dom.stageVoice].forEach(stage => {
+      if (stage) stage.style.display = 'none';
+    });
+    this.dom.settingsMenuStage.style.display = 'block';
+  }
+
   openSettingsPanel() {
+    this.showMenu();
     this.aiVision.refreshOnOpen();
     this.language.refreshOnOpen();
     this.voice.refreshOnOpen();

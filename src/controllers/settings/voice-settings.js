@@ -11,71 +11,81 @@ export class VoiceSettings {
     this.dom = dom;
     this.showToastCallback = showToastCallback;
 
-    this.populateOptions();
-    ttsPlayer.voiceManager.onVoicesReady = () => this.populateOptions();
-
-    this.dom.selectVoiceAccent?.addEventListener('change', (e) => {
-      const name = e.target.value;
-      if (name) {
-        ttsPlayer.voiceManager.setSelectedVoiceByName(name);
-        localStorage.setItem('tts_voice_name', name);
-      } else {
-        localStorage.removeItem('tts_voice_name');
-        ttsPlayer.voiceManager.selectedVoice = null;
-      }
-      this.updateHint(name);
-      this.showToastCallback('Voice accent updated! 🔊');
-    });
+    this.render();
+    ttsPlayer.voiceManager.onVoicesReady = () => this.render();
   }
 
-  populateOptions() {
-    const select = this.dom.selectVoiceAccent;
-    if (!select) return;
+  render() {
+    const list = this.dom.voiceOptionsList;
+    if (!list) return;
 
     const voices = ttsPlayer.voiceManager.voices;
-    select.innerHTML = '';
+    const activeName = ttsPlayer.voiceManager.selectedVoice?.name || '';
+    list.innerHTML = '';
 
-    const autoOpt = document.createElement('option');
-    autoOpt.value = '';
-    autoOpt.textContent = '✨ Auto (best available accent)';
-    select.appendChild(autoOpt);
+    const autoRow = document.createElement('button');
+    autoRow.className = 'settings-option-row' + (activeName ? '' : ' selected');
+    autoRow.innerHTML = `
+      <span class="settings-option-flag">✨</span>
+      <span class="settings-option-label">Auto (best available accent)</span>
+      <span class="settings-option-check">✓</span>
+    `;
+    autoRow.addEventListener('click', () => this.selectVoice(''));
+    list.appendChild(autoRow);
 
     if (!voices || voices.length === 0) {
-      const loadingOpt = document.createElement('option');
-      loadingOpt.disabled = true;
-      loadingOpt.textContent = 'Loading voices…';
-      select.appendChild(loadingOpt);
+      const loadingRow = document.createElement('div');
+      loadingRow.className = 'settings-section-hint';
+      loadingRow.style.padding = '8px 4px';
+      loadingRow.textContent = 'Loading available voices…';
+      list.appendChild(loadingRow);
       return;
     }
 
     voices.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.name;
-      opt.textContent = `${v.name} (${v.lang})`;
-      select.appendChild(opt);
+      const row = document.createElement('button');
+      row.className = 'settings-option-row' + (v.name === activeName ? ' selected' : '');
+      row.innerHTML = `
+        <span class="settings-option-flag">${this.flagFor(v.lang)}</span>
+        <span class="settings-option-label">${v.name} (${v.lang})</span>
+        <span class="settings-option-check">✓</span>
+      `;
+      row.addEventListener('click', () => this.selectVoice(v.name));
+      list.appendChild(row);
     });
 
-    const savedName = localStorage.getItem('tts_voice_name');
-    select.value = savedName && voices.some(v => v.name === savedName) ? savedName : '';
-    this.updateHint(select.value);
+    this.updateMenuSubtitle(activeName);
   }
 
-  updateHint(voiceName) {
-    if (this.dom.voiceAccentHint) {
-      this.dom.voiceAccentHint.textContent = voiceName
-        ? `Using "${voiceName}" for all reading.`
-        : 'Auto-picks the best Indian-accent voice available on your device.';
-    }
+  flagFor(lang) {
+    const prefix = (lang || '').toLowerCase().slice(0, 2);
+    const match = SUPPORTED_LANGUAGES.find(l => l.code === prefix);
+    return match ? match.flag : '🇮🇳';
+  }
 
+  selectVoice(name) {
+    if (name) {
+      ttsPlayer.voiceManager.setSelectedVoiceByName(name);
+      localStorage.setItem('tts_voice_name', name);
+    } else {
+      localStorage.removeItem('tts_voice_name');
+      ttsPlayer.voiceManager.selectedVoice = null;
+    }
+    this.render();
+    this.showToastCallback('Voice accent updated! 🔊');
+  }
+
+  updateMenuSubtitle(activeName) {
+    if (this.dom.menuSubtitleVoice) {
+      this.dom.menuSubtitleVoice.textContent = activeName || 'Auto';
+    }
     if (this.dom.audioAccentLabel) {
-      const voice = ttsPlayer.voiceManager.voices?.find(v => v.name === voiceName);
-      const prefix = (voice?.lang || 'en').toLowerCase().slice(0, 2);
-      const langMatch = SUPPORTED_LANGUAGES.find(l => l.code === prefix);
-      this.dom.audioAccentLabel.textContent = langMatch ? langMatch.flag : '🇮🇳';
+      const voice = ttsPlayer.voiceManager.voices?.find(v => v.name === activeName);
+      this.dom.audioAccentLabel.textContent = voice ? this.flagFor(voice.lang) : '🇮🇳';
     }
   }
 
   refreshOnOpen() {
-    this.populateOptions();
+    this.render();
   }
 }

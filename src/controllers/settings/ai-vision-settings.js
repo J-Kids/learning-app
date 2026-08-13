@@ -22,6 +22,9 @@ export class AiVisionSettings {
         this.dom.aiStatusText.textContent = 'Not Configured (Using Local OCR)';
       }
     }
+    if (this.dom.menuSubtitleAiVision) {
+      this.dom.menuSubtitleAiVision.textContent = isConfigured ? 'Active & Connected' : 'Not Configured';
+    }
   }
 
   refreshOnOpen() {

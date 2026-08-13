@@ -2,7 +2,7 @@
  * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1.0.34';
+const CACHE_NAME = 'kids-learning-v1.0.35';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
