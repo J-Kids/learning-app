@@ -17,8 +17,5 @@ export class AppState {
     this.scanMode = 'full';
     this.uploadedImages = [];
     this.temporaryPagesData = null;
-    
-    // Camera stream reference
-    this.cameraStream = null;
   }
 }

@@ -5,6 +5,9 @@
 
 import { learningDB } from '../services/storage/learning-db.js';
 import { ocrEngine } from '../services/ocr/ocr-engine.js';
+import { CameraController } from '../services/camera/camera-controller.js';
+import { ImageCropper } from '../services/camera/image-cropper.js';
+import { canvasToFile } from '../utils/canvas-file.js';
 
 export class ScanViewManager {
   constructor(dom, state, router, openReaderForPagesCallback, showToastCallback) {
@@ -13,6 +16,13 @@ export class ScanViewManager {
     this.router = router;
     this.openReaderForPagesCallback = openReaderForPagesCallback;
     this.showToastCallback = showToastCallback;
+
+    this.camera = new CameraController(dom.videoCameraFeed);
+    this.cropper = new ImageCropper({
+      wrapEl: dom.cropCanvasWrap,
+      imageEl: dom.cropImage,
+      boxEl: dom.cropBox
+    });
   }
 
   async populateScanSubjectDropdown() {
@@ -118,35 +128,9 @@ export class ScanViewManager {
 
   async openCameraView() {
     try {
-      this.state.cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      const videoFeed = this.dom.videoCameraFeed || document.getElementById('videoCameraFeed');
-      const modal = this.dom.modalCameraStream || document.getElementById('modalCameraStream');
-      const btnClose = document.getElementById('btnCloseCameraModal');
-      const btnSnap = document.getElementById('btnSnapCameraStream');
-
-      if (videoFeed) {
-        videoFeed.srcObject = this.state.cameraStream;
-      }
-      if (modal) {
-        modal.classList.add('active');
-        modal.onclick = (e) => {
-          if (e.target.id === 'modalCameraStream') this.stopCameraStream();
-        };
-      }
-      if (btnClose) {
-        btnClose.onclick = (e) => {
-          if (e) { e.preventDefault(); e.stopPropagation(); }
-          this.stopCameraStream();
-        };
-      }
-      if (btnSnap) {
-        btnSnap.onclick = (e) => {
-          if (e) { e.preventDefault(); e.stopPropagation(); }
-          this.snapFrameFromCamera();
-        };
-      }
+      await this.camera.start();
+      this.resetToLiveStage();
+      this.dom.modalCameraStream?.classList.add('active');
 
       // Push history state so physical back button on mobile closes camera instead of exiting app
       if (!this._isCameraHistoryPushed) {
@@ -155,15 +139,15 @@ export class ScanViewManager {
       }
 
       this._popStateListener = () => {
-        const modalEl = this.dom.modalCameraStream || document.getElementById('modalCameraStream');
-        if (modalEl && modalEl.classList.contains('active')) {
+        if (this.dom.modalCameraStream?.classList.contains('active')) {
           this.stopCameraStream(false);
         }
       };
       window.addEventListener('popstate', this._popStateListener, { once: true });
 
     } catch (err) {
-      alert('Unable to access camera stream: ' + err.message);
+      this.showToastCallback?.('Unable to access camera: ' + err.message);
+      console.error('[Camera] getUserMedia failed:', err);
     }
   }
 
@@ -180,67 +164,51 @@ export class ScanViewManager {
       }
     }
 
-    if (this.state.cameraStream) {
-      this.state.cameraStream.getTracks().forEach(track => track.stop());
-      this.state.cameraStream = null;
-    }
-    const videoFeed = this.dom.videoCameraFeed || document.getElementById('videoCameraFeed');
-    if (videoFeed) {
-      videoFeed.srcObject = null;
-    }
-    const modal = this.dom.modalCameraStream || document.getElementById('modalCameraStream');
-    if (modal) {
-      modal.classList.remove('active');
-    }
+    this.camera.stop();
+    this.dom.modalCameraStream?.classList.remove('active');
+    this.resetToLiveStage();
+    this.cropper.reset();
+  }
+
+  resetToLiveStage() {
+    if (this.dom.cameraCropStage) this.dom.cameraCropStage.style.display = 'none';
+    if (this.dom.cameraLiveStage) this.dom.cameraLiveStage.style.display = 'block';
+    if (this.dom.cameraStageTitle) this.dom.cameraStageTitle.textContent = '📷 Live Camera Scanner';
   }
 
   snapFrameFromCamera() {
-    const videoFeed = this.dom.videoCameraFeed || document.getElementById('videoCameraFeed');
-    if (!videoFeed) return;
-
     try {
-      const canvas = document.createElement('canvas');
-      const width = videoFeed.videoWidth > 0 ? videoFeed.videoWidth : (videoFeed.clientWidth || 1280);
-      const height = videoFeed.videoHeight > 0 ? videoFeed.videoHeight : (videoFeed.clientHeight || 720);
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoFeed, 0, 0, width, height);
-
-      if (canvas.toBlob) {
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const capturedFile = new File([blob], `snap_${Date.now()}.jpg`, { type: 'image/jpeg' });
-            this.handleFileSelection([capturedFile]);
-          } else {
-            this.fallbackSnapDataUrl(canvas);
-          }
-          this.stopCameraStream();
-        }, 'image/jpeg', 0.9);
-      } else {
-        this.fallbackSnapDataUrl(canvas);
-        this.stopCameraStream();
-      }
+      const canvas = this.camera.captureFrame();
+      if (!canvas) return;
+      this.showCropStage(canvas);
     } catch (err) {
       console.error('[Camera] Snap failed:', err);
-      alert('Camera capture failed: ' + err.message);
-      this.stopCameraStream();
+      this.showToastCallback?.('Camera capture failed: ' + err.message);
     }
   }
 
-  fallbackSnapDataUrl(canvas) {
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    const arr = dataUrl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    const capturedFile = new File([u8arr], `snap_${Date.now()}.jpg`, { type: mime });
-    this.handleFileSelection([capturedFile]);
+  // ---- Crop stage ----
+
+  async showCropStage(canvas) {
+    if (this.dom.cameraLiveStage) this.dom.cameraLiveStage.style.display = 'none';
+    if (this.dom.cameraCropStage) this.dom.cameraCropStage.style.display = 'block';
+    if (this.dom.cameraStageTitle) this.dom.cameraStageTitle.textContent = '✂️ Crop Page';
+
+    await this.cropper.load(canvas);
+  }
+
+  retakePhoto() {
+    this.cropper.reset();
+    this.resetToLiveStage();
+  }
+
+  async confirmCrop() {
+    const croppedCanvas = this.cropper.getCroppedCanvas();
+    if (!croppedCanvas) return;
+
+    const file = await canvasToFile(croppedCanvas);
+    this.handleFileSelection([file]);
+    this.stopCameraStream();
   }
 
   async handleStartBatchOcr() {

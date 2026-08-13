@@ -79,8 +79,8 @@ export class KidsLearningApp {
       this.scanView.openCameraView();
     });
     this.dom.fileInputCamera?.addEventListener('change', (e) => this.scanView.handleFileSelection(e.target.files));
-    (this.dom.btnCloseCameraModal || document.getElementById('btnCloseCameraModal'))?.addEventListener('click', () => this.scanView.stopCameraStream());
-    (this.dom.btnSnapCameraStream || document.getElementById('btnSnapCameraStream'))?.addEventListener('click', () => this.scanView.snapFrameFromCamera());
+    // Close/Snap/Retake/Confirm inside the camera modal are wired via inline onclick in index.html
+    // (the modal's stages are toggled at runtime, so binding them here would double-fire).
 
     this.dom.uploadDropzone?.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON' && !e.target.classList.contains('btn-pill')) {
