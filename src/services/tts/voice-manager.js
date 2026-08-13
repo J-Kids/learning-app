@@ -1,13 +1,29 @@
 /**
  * Speech Synthesis Voice Loader & Matcher
- * Finds matching Indian accent voices (en-IN and hi-IN) on Web Speech API.
+ * Finds matching Indian accent voices (en-IN and hi-IN) on Web Speech API,
+ * with generic locale-based matching for the other supported languages.
  */
+
+export const LANGUAGE_LOCALES = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  kn: 'kn-IN',
+  mr: 'mr-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+  bn: 'bn-IN',
+  gu: 'gu-IN',
+  es: 'es-ES',
+  fr: 'fr-FR'
+};
 
 export class VoiceManager {
   constructor(synth) {
     this.synth = synth;
     this.voices = [];
     this.selectedVoice = null;
+    this.pendingVoiceName = null;
+    this.onVoicesReady = null;
     this.loadVoices();
   }
 
@@ -17,6 +33,10 @@ export class VoiceManager {
     if (this.synth.onvoiceschanged !== undefined) {
       this.synth.onvoiceschanged = () => {
         this.voices = this.synth.getVoices();
+        if (this.pendingVoiceName) {
+          this.setSelectedVoiceByName(this.pendingVoiceName);
+        }
+        if (this.onVoicesReady) this.onVoicesReady();
       };
     }
   }
@@ -27,15 +47,26 @@ export class VoiceManager {
     }
 
     const isHindi = (langCode === 'hi');
+    const isEnglish = (langCode === 'en' || !langCode);
 
     if (this.selectedVoice) {
       const selLang = (this.selectedVoice.lang || '').toLowerCase().replace('-', '_');
       const selName = (this.selectedVoice.name || '').toLowerCase();
       if (isHindi && (selLang.includes('hi') || selName.includes('hindi'))) {
         return this.selectedVoice;
-      } else if (!isHindi && (selLang.includes('en') || !selLang.includes('hi'))) {
+      } else if (isEnglish && (selLang.includes('en') || !selLang.includes('hi'))) {
+        return this.selectedVoice;
+      } else if (!isHindi && !isEnglish && selLang.startsWith(langCode)) {
         return this.selectedVoice;
       }
+    }
+
+    if (!isHindi && !isEnglish) {
+      // Generic locale-prefix match for the other supported languages (Kannada, Marathi, Tamil,
+      // Telugu, Bengali, Gujarati, Spanish, French, ...). Most devices won't have every regional
+      // Indian voice pack installed, so this may legitimately find nothing — callers already fall
+      // back to a locale-hinted default voice (see LANGUAGE_LOCALES) when this returns null.
+      return this.voices.find(v => (v.lang || '').toLowerCase().startsWith(langCode)) || null;
     }
 
     if (isHindi) {
@@ -97,10 +128,23 @@ export class VoiceManager {
     return null;
   }
 
+  getAvailableVoicesForLanguage(langCode) {
+    if (!this.voices || this.voices.length === 0) {
+      this.voices = this.synth.getVoices();
+    }
+    const prefix = langCode === 'en' ? 'en' : langCode;
+    return this.voices.filter(v => (v.lang || '').toLowerCase().startsWith(prefix));
+  }
+
   setSelectedVoiceByName(voiceName) {
     const found = this.voices.find(v => v.name === voiceName);
     if (found) {
       this.selectedVoice = found;
+      this.pendingVoiceName = null;
+    } else {
+      // Voices may not be loaded yet (speechSynthesis.getVoices() is often empty
+      // until 'onvoiceschanged' fires) - remember the name and retry then.
+      this.pendingVoiceName = voiceName;
     }
   }
 }

@@ -106,7 +106,7 @@ export function getDomElements() {
     btnRetakePhoto: document.getElementById('btnRetakePhoto'),
     btnConfirmCrop: document.getElementById('btnConfirmCrop'),
 
-    modalAiSettings: document.getElementById('modalAiSettings'),
+    modalSettingsPanel: document.getElementById('modalSettingsPanel'),
     btnHeaderAiSettings: document.getElementById('btnHeaderAiSettings'),
     btnCloseAiSettings: document.getElementById('btnCloseAiSettings'),
     inputGeminiApiKey: document.getElementById('inputGeminiApiKey'),
@@ -115,6 +115,13 @@ export function getDomElements() {
     btnTestAiKey: document.getElementById('btnTestAiKey'),
     aiStatusDot: document.getElementById('aiStatusDot'),
     aiStatusText: document.getElementById('aiStatusText'),
+
+    // Settings Panel - Translation & Voice & Offline & Logs
+    selectTargetLanguage: document.getElementById('selectTargetLanguage'),
+    selectVoiceAccent: document.getElementById('selectVoiceAccent'),
+    voiceAccentHint: document.getElementById('voiceAccentHint'),
+    checkPreferOffline: document.getElementById('checkPreferOffline'),
+    btnOpenDebugLogs: document.getElementById('btnOpenDebugLogs'),
 
     toastMsg: document.getElementById('toastMsg')
   };

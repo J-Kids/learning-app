@@ -6,7 +6,7 @@
 import { ttsPlayer } from '../services/tts/tts-engine.js';
 import { prepareSentences } from '../services/tts/speech-formatter.js';
 import { learningDB } from '../services/storage/learning-db.js';
-import { translationEngine } from '../services/translator.js';
+import { translationEngine, getLanguageInfo } from '../services/translator.js';
 import { openModal, closeModal } from './navigation.js';
 
 export class ReaderViewManager {
@@ -26,6 +26,11 @@ export class ReaderViewManager {
     this.dom.btnLangEn.classList.add('active');
     this.dom.btnLangHi.classList.remove('active');
 
+    const translatedLangCode = pages[0]?.translatedLangCode || 'hi';
+    const langInfo = getLanguageInfo(translatedLangCode);
+    this.dom.btnLangHi.textContent = `${langInfo.flag} ${langInfo.name}`;
+    this.dom.btnLangHi.dataset.langCode = translatedLangCode;
+
     if (isTemporary) {
       this.dom.tempScanHeaderBanner.style.display = 'flex';
       this.state.temporaryPagesData = pages;
@@ -42,8 +47,8 @@ export class ReaderViewManager {
     if (this.state.currentChapterPages.length === 0) return;
 
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
-    const isHindi = (this.state.currentLanguage === 'hi');
-    const textToDisplay = isHindi ? (page.textHi || 'No Hindi translation available.') : (page.textEn || 'No text extracted.');
+    const isTranslatedTab = (this.state.currentLanguage !== 'en');
+    const textToDisplay = isTranslatedTab ? (page.textHi || 'No translation available.') : (page.textEn || 'No text extracted.');
 
     this.dom.readerPageIndicator.textContent = `Page ${this.state.currentPageIndex + 1} of ${this.state.currentChapterPages.length}`;
     this.dom.textContentBox.innerHTML = '';
@@ -116,18 +121,23 @@ export class ReaderViewManager {
     this.state.currentLanguage = lang;
     ttsPlayer.stop();
 
-    if (lang === 'hi') {
-      this.dom.btnLangHi.classList.add('active');
-      this.dom.btnLangEn.classList.remove('active');
-    } else {
+    if (lang === 'en') {
       this.dom.btnLangEn.classList.add('active');
       this.dom.btnLangHi.classList.remove('active');
+    } else {
+      this.dom.btnLangHi.classList.add('active');
+      this.dom.btnLangEn.classList.remove('active');
     }
 
     if (window.app && window.app.updatePlayButtonState) {
       window.app.updatePlayButtonState(false);
     }
     this.renderCurrentReaderPage();
+  }
+
+  switchToTranslatedLanguage() {
+    const page = this.state.currentChapterPages[this.state.currentPageIndex];
+    this.switchReaderLanguage(page?.translatedLangCode || 'hi');
   }
 
   openEditTextModal() {
@@ -143,7 +153,7 @@ export class ReaderViewManager {
     const page = this.state.currentChapterPages[this.state.currentPageIndex];
 
     page.textEn = newEnText;
-    page.textHi = await translationEngine.translateToHindi(newEnText);
+    page.textHi = await translationEngine.translateText(newEnText, page.translatedLangCode || 'hi');
 
     if (page.id) {
       await learningDB.savePage(page);

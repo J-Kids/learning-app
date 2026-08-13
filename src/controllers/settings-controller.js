@@ -1,97 +1,64 @@
 /**
- * AI Settings Modal Controller & API Key Manager
+ * Settings Panel Orchestrator
+ * Opens/closes the left slide-in Settings drawer and wires up its sections:
+ * AI Vision, Translation Language, Voice Accent, Offline Engine, Debug Logs.
  */
 
-import { geminiEngine } from '../services/gemini/gemini-engine.js';
+import { logger } from '../utils/logger.js';
 import { openModal, closeModal } from '../views/navigation.js';
+import { AiVisionSettings } from './settings/ai-vision-settings.js';
+import { LanguageSettings } from './settings/language-settings.js';
+import { VoiceSettings } from './settings/voice-settings.js';
 
 export class SettingsController {
   constructor(dom, showToastCallback) {
     this.dom = dom;
     this.showToastCallback = showToastCallback;
-    this.updateAiStatusBadge();
+
+    this.aiVision = new AiVisionSettings(dom, showToastCallback);
+    this.language = new LanguageSettings(dom, showToastCallback);
+    this.voice = new VoiceSettings(dom, showToastCallback);
+
+    this.aiVision.updateStatusBadge();
+    this.initOfflineToggle();
+    this.initDebugLogsButton();
   }
 
-  updateAiStatusBadge() {
-    const isConfigured = geminiEngine.isConfigured();
-    if (this.dom.aiStatusDot && this.dom.aiStatusText) {
-      if (isConfigured) {
-        this.dom.aiStatusDot.style.background = 'var(--accent-green)';
-        this.dom.aiStatusText.textContent = 'Active & Connected';
-      } else {
-        this.dom.aiStatusDot.style.background = '#94A3B8';
-        this.dom.aiStatusText.textContent = 'Not Configured (Using Local OCR)';
-      }
-    }
+  initOfflineToggle() {
+    if (!this.dom.checkPreferOffline) return;
+    this.dom.checkPreferOffline.checked = localStorage.getItem('prefer_offline_ocr') === 'true';
+    this.dom.checkPreferOffline.addEventListener('change', (e) => {
+      localStorage.setItem('prefer_offline_ocr', e.target.checked ? 'true' : 'false');
+      this.showToastCallback(e.target.checked ? 'Offline scanning preferred ⚡' : 'AI Vision scanning re-enabled ✨');
+    });
   }
 
-  openAiSettingsModal() {
-    this.dom.inputGeminiApiKey.value = geminiEngine.getApiKey();
-    this.updateAiStatusBadge();
-
-    const resultEl = document.getElementById('aiTestResult');
-    if (resultEl) resultEl.textContent = '';
-
-    openModal(this.dom.modalAiSettings);
+  initDebugLogsButton() {
+    this.dom.btnOpenDebugLogs?.addEventListener('click', () => logger.show());
   }
 
-  closeAiSettingsModal() {
-    closeModal(this.dom.modalAiSettings);
+  openSettingsPanel() {
+    this.aiVision.refreshOnOpen();
+    this.language.refreshOnOpen();
+    this.voice.refreshOnOpen();
+    openModal(this.dom.modalSettingsPanel);
+  }
+
+  closeSettingsPanel() {
+    closeModal(this.dom.modalSettingsPanel);
   }
 
   handleSaveAiKey() {
-    const key = this.dom.inputGeminiApiKey.value.trim();
-    if (!key) {
-      alert('Please enter a valid Gemini API Key.');
-      return;
-    }
-    geminiEngine.setApiKey(key);
-    this.updateAiStatusBadge();
-    closeModal(this.dom.modalAiSettings);
-    this.showToastCallback('Gemini API Key Saved! ✨');
+    // Unlike the old single-purpose modal, saving no longer auto-closes the panel -
+    // the drawer now holds four other sections the user may still want to visit.
+    this.aiVision.handleSaveKey();
   }
 
   handleClearAiKey() {
-    geminiEngine.setApiKey('');
-    this.dom.inputGeminiApiKey.value = '';
-    this.updateAiStatusBadge();
-    const resultEl = document.getElementById('aiTestResult');
-    if (resultEl) resultEl.textContent = '';
-    this.showToastCallback('API Key Cleared (Using Local OCR)');
+    this.aiVision.handleClearKey();
   }
 
-  async handleTestAiKey() {
-    const key = this.dom.inputGeminiApiKey.value.trim();
-    const resultEl = document.getElementById('aiTestResult');
-    const btn = document.getElementById('btnTestAiKey');
-
-    if (!key) {
-      if (resultEl) {
-        resultEl.style.color = '#EF4444';
-        resultEl.textContent = '⚠️ Please enter an API key to test.';
-      }
-      return;
-    }
-
-    if (btn) btn.textContent = 'Testing...';
-    if (resultEl) {
-      resultEl.style.color = '#64748B';
-      resultEl.textContent = '⏳ Testing API connection...';
-    }
-
-    try {
-      await geminiEngine.testConnection(key);
-      if (resultEl) {
-        resultEl.style.color = '#059669';
-        resultEl.textContent = '✅ Connection Successful! Gemini API key is valid.';
-      }
-    } catch (err) {
-      if (resultEl) {
-        resultEl.style.color = '#EF4444';
-        resultEl.textContent = `❌ Connection Failed: ${err.message}`;
-      }
-    } finally {
-      if (btn) btn.textContent = '🔌 Test Connection';
-    }
+  handleTestAiKey() {
+    this.aiVision.handleTestKey();
   }
 }

@@ -6,7 +6,7 @@
 import { preprocessImageForOcr } from './image-preprocessor.js';
 import { cleanExtractedText } from './text-cleaner.js';
 import { geminiEngine } from '../gemini/gemini-engine.js';
-import { translationEngine } from '../translator.js';
+import { translationEngine, getLanguageInfo } from '../translator.js';
 
 class OcrEngine {
   constructor() {
@@ -58,16 +58,17 @@ class OcrEngine {
     }
   }
 
-  async processSingleImage(imageSrc, progressCallback) {
-    // 1. Try Gemini Vision AI first if API key is configured
-    if (geminiEngine.isConfigured()) {
+  async processSingleImage(imageSrc, progressCallback, { targetLangCode = 'hi', preferOffline = false } = {}) {
+    // 1. Try Gemini Vision AI first if API key is configured (unless the user prefers offline scanning)
+    if (!preferOffline && geminiEngine.isConfigured()) {
       try {
         if (progressCallback) progressCallback({ status: 'Scanning with AI Vision Studio...', progress: 30 });
-        const aiResult = await geminiEngine.scanTextbookImage(imageSrc);
+        const aiResult = await geminiEngine.scanTextbookImage(imageSrc, targetLangCode);
         return {
           title: aiResult.title || 'Scanned Page',
           textEn: cleanExtractedText(aiResult.textEn),
-          textHi: aiResult.textHi || await translationEngine.translateToHindi(aiResult.textEn),
+          textHi: aiResult.textTranslated || await translationEngine.translateText(aiResult.textEn, targetLangCode),
+          translatedLangCode: targetLangCode,
           engineUsed: `✨ AI Vision (${aiResult.modelUsed || 'Gemini'})`
         };
       } catch (aiErr) {
@@ -101,14 +102,16 @@ class OcrEngine {
     const rawExtractedText = result?.data?.text || '';
     const cleanedEnglishText = cleanExtractedText(rawExtractedText);
 
-    if (progressCallback) progressCallback({ status: 'Translating to Hindi...', progress: 85 });
+    const targetLangName = getLanguageInfo(targetLangCode).name;
+    if (progressCallback) progressCallback({ status: `Translating to ${targetLangName}...`, progress: 85 });
 
-    const hindiText = await translationEngine.translateToHindi(cleanedEnglishText);
+    const translatedText = await translationEngine.translateText(cleanedEnglishText, targetLangCode);
 
     return {
       title: 'Scanned Page',
       textEn: cleanedEnglishText || 'No clear text recognized. Please try scanning again.',
-      textHi: hindiText,
+      textHi: translatedText,
+      translatedLangCode: targetLangCode,
       engineUsed: '⚡ Local Offline OCR'
     };
   }

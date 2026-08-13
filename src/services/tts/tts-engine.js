@@ -3,7 +3,7 @@
  * Manages sentence-by-sentence reading, single-word pronunciation, speed control, and sentence callbacks.
  */
 
-import { VoiceManager } from './voice-manager.js';
+import { VoiceManager, LANGUAGE_LOCALES } from './voice-manager.js';
 import { formatTextForSpeech, prepareSentences } from './speech-formatter.js';
 
 class TtsPlayerEngine {
@@ -23,6 +23,11 @@ class TtsPlayerEngine {
     this.currentSentenceIndex = 0;
     this.onSentenceHighlight = null;
     this.onEndCallback = null;
+
+    const savedVoiceName = localStorage.getItem('tts_voice_name');
+    if (savedVoiceName) {
+      this.voiceManager.setSelectedVoiceByName(savedVoiceName);
+    }
   }
 
   speakSingleWord(wordText, lang = 'en') {
@@ -42,8 +47,8 @@ class TtsPlayerEngine {
     if (voice) {
       utterance.voice = voice;
     }
-    // Enforce Indian English locale accent ('en-IN') for English speech
-    utterance.lang = (speechLang === 'hi') ? 'hi-IN' : 'en-IN';
+    // Enforce the correct locale accent (e.g. Indian English 'en-IN') per target language
+    utterance.lang = LANGUAGE_LOCALES[speechLang] || 'en-IN';
 
     this.currentUtterance = utterance;
     this.synth.speak(utterance);
@@ -89,8 +94,8 @@ class TtsPlayerEngine {
     if (voice) {
       utterance.voice = voice;
     }
-    // Enforce Indian English locale accent ('en-IN') for English sentence speech
-    utterance.lang = this.currentLanguage === 'hi' ? 'hi-IN' : 'en-IN';
+    // Enforce the correct locale accent (e.g. Indian English 'en-IN') per target language
+    utterance.lang = LANGUAGE_LOCALES[this.currentLanguage] || 'en-IN';
 
     utterance.onend = () => {
       if (this.isPlaying && !this.isPaused) {

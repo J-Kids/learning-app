@@ -2,7 +2,7 @@
  * Kids Learning App - Service Worker for Offline Caching & Auto Build Updates
  */
 
-const CACHE_NAME = 'kids-learning-v1.0.33';
+const CACHE_NAME = 'kids-learning-v1.0.34';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -22,10 +22,12 @@ const ASSETS_TO_CACHE = [
   './src/styles/main.css',
   './src/styles/base.css',
   './src/styles/header.css',
-  './src/styles/views.css',
+  './src/styles/home-view.css',
+  './src/styles/scan-view.css',
   './src/styles/reader.css',
   './src/styles/player.css',
   './src/styles/modals.css',
+  './src/styles/settings-panel.css',
   './src/services/storage/learning-db.js',
   './src/services/translator.js',
   './src/services/gemini/image-utils.js',
@@ -43,7 +45,10 @@ const ASSETS_TO_CACHE = [
   './src/views/scan-view.js',
   './src/views/reader-view.js',
   './src/controllers/audio-controller.js',
-  './src/controllers/settings-controller.js'
+  './src/controllers/settings-controller.js',
+  './src/controllers/settings/ai-vision-settings.js',
+  './src/controllers/settings/language-settings.js',
+  './src/controllers/settings/voice-settings.js'
 ];
 
 self.addEventListener('install', (event) => {

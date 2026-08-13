@@ -8,6 +8,7 @@ import { ocrEngine } from '../services/ocr/ocr-engine.js';
 import { CameraController } from '../services/camera/camera-controller.js';
 import { ImageCropper } from '../services/camera/image-cropper.js';
 import { canvasToFile } from '../utils/canvas-file.js';
+import { translationEngine } from '../services/translator.js';
 
 export class ScanViewManager {
   constructor(dom, state, router, openReaderForPagesCallback, showToastCallback) {
@@ -221,6 +222,9 @@ export class ScanViewManager {
     const scannedPages = [];
 
     try {
+      const targetLangCode = translationEngine.getTargetLanguage();
+      const preferOffline = localStorage.getItem('prefer_offline_ocr') === 'true';
+
       for (let i = 0; i < totalImages; i++) {
         const file = this.state.uploadedImages[i];
         const pageNum = i + 1;
@@ -230,13 +234,14 @@ export class ScanViewManager {
           const currentPercent = Math.round(((i + (info.progress || 0) / 100) / totalImages) * 100);
           this.dom.ocrProgressPercent.textContent = `${currentPercent}%`;
           this.dom.ocrProgressBarFill.style.width = `${currentPercent}%`;
-        });
+        }, { targetLangCode, preferOffline });
 
         scannedPages.push({
           pageIndex: i,
           title: result.title || `Page ${pageNum}`,
           textEn: result.textEn,
           textHi: result.textHi,
+          translatedLangCode: result.translatedLangCode || targetLangCode,
           engineUsed: result.engineUsed
         });
       }
@@ -268,6 +273,7 @@ export class ScanViewManager {
             pageIndex: p.pageIndex,
             textEn: p.textEn,
             textHi: p.textHi,
+            translatedLangCode: p.translatedLangCode,
             engineUsed: p.engineUsed
           });
         }

@@ -6,6 +6,7 @@
 import { imageToBase64 } from './image-utils.js';
 import { discoverVisionModels } from './model-discovery.js';
 import { parseAiResponse } from './response-parser.js';
+import { getLanguageInfo } from '../translator.js';
 
 class GeminiVisionEngine {
   constructor() {
@@ -31,13 +32,14 @@ class GeminiVisionEngine {
     return Boolean(this.apiKey && this.apiKey.length > 10);
   }
 
-  async scanTextbookImage(imageSource) {
+  async scanTextbookImage(imageSource, targetLangCode = 'hi') {
     if (!this.isConfigured()) {
       throw new Error('Gemini API Key is not set. Please set your key in AI Settings.');
     }
 
     const imagePayload = await imageToBase64(imageSource);
     const discoveredModels = await discoverVisionModels(this.apiKey);
+    const targetLangName = getLanguageInfo(targetLangCode).name;
 
     const promptText = `
 You are an expert OCR and translation assistant for primary school children (Class 2).
@@ -47,15 +49,15 @@ Analyze this textbook page image and perform the following tasks:
    - Each visual line of text in the image MUST appear on its own new line (\n) in "textEn".
    - Do NOT merge multiple lines into a single paragraph or sentence.
    - Numbered or bulleted items must each be on their own separate line.
-2. Translate the full extracted text into simple, easy-to-understand Hindi suitable for a Class 2 kid ("textHi").
-   Apply the same line-preservation rule: each line in "textEn" should have a corresponding line in "textHi".
+2. Translate the full extracted text into simple, easy-to-understand ${targetLangName} suitable for a Class 2 kid ("textTranslated").
+   Apply the same line-preservation rule: each line in "textEn" should have a corresponding line in "textTranslated".
 3. Suggest a short 2-4 word Chapter Title for this page ("title").
 
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Page Title Here",
   "textEn": "Line one\nLine two\nLine three",
-  "textHi": "पंक्ति एक\nपंक्ति दो\nपंक्ति तीन"
+  "textTranslated": "Translated line one\nTranslated line two\nTranslated line three"
 }
 `;
 

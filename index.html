@@ -23,7 +23,7 @@
           <div class="app-icon-badge">📚</div>
           <div>
             <h1 class="app-title">Read & Learn</h1>
-            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.33</span></p>
+            <p class="app-subtitle"><span class="build-tag" id="appBuildTag">Build v1.0.34</span></p>
           </div>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -380,40 +380,81 @@
     </div>
 
     <!-- MODAL: AI SETTINGS (Gemini API Key) -->
-    <div class="modal-overlay" id="modalAiSettings">
-      <div class="modal-card" style="max-width: 420px;">
-        <div class="modal-header"
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 class="modal-title" style="font-family: var(--font-heading); font-size: 17px; color: var(--text-dark);">✨
-            AI Vision Settings</h3>
+    <div class="modal-overlay drawer-left" id="modalSettingsPanel">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <h3 class="drawer-title">⚙️ Settings</h3>
           <button class="btn-close-modal" id="btnCloseAiSettings">✕</button>
         </div>
 
-        <!-- Status Badge -->
-        <div id="aiStatusBadge"
-          style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); background: #F1F5F9; margin-bottom: 16px; font-size: 13px; font-weight: 600;">
-          <span id="aiStatusDot"
-            style="width: 10px; height: 10px; border-radius: 50%; background: #94A3B8; display: inline-block;"></span>
-          <span id="aiStatusText">No API Key — Using On-Device OCR</span>
+        <!-- Section 1: AI Vision -->
+        <div class="settings-section">
+          <div class="settings-section-title"><span>✨</span> AI Vision</div>
+
+          <div id="aiStatusBadge"
+            style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); background: #F1F5F9; margin-bottom: 14px; font-size: 13px; font-weight: 600;">
+            <span id="aiStatusDot"
+              style="width: 10px; height: 10px; border-radius: 50%; background: #94A3B8; display: inline-block;"></span>
+            <span id="aiStatusText">No API Key — Using On-Device OCR</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="inputGeminiApiKey">Gemini API Key</label>
+            <input id="inputGeminiApiKey" type="password" class="form-input"
+              placeholder="Paste your Gemini API key here..." autocomplete="off" />
+            <p class="settings-section-hint">Get a <strong>100% free</strong> API key from
+              <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary-purple);">Google AI Studio</a>.
+              Key is stored only on your phone.</p>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button class="btn-cta" id="btnSaveAiKey" style="flex: 1;">💾 Save Key & Enable AI</button>
+            <button class="btn-pill" id="btnClearAiKey"
+              style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
+          </div>
+          <button class="btn-pill" id="btnTestAiKey"
+            style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
+          <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label class="form-label" for="inputGeminiApiKey">Gemini API Key</label>
-          <input id="inputGeminiApiKey" type="password" class="form-input"
-            placeholder="Paste your Gemini API key here..." autocomplete="off" />
-          <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">Get a <strong>100%
-              free</strong> API key from <a href="https://aistudio.google.com/" target="_blank"
-              style="color: var(--primary-purple);">Google AI Studio</a>. Key is stored only on your phone.</p>
+        <!-- Section 2: Translation & Target Language -->
+        <div class="settings-section">
+          <div class="settings-section-title"><span>🌐</span> Translation Language</div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="selectTargetLanguage">Translate scanned pages into</label>
+            <select id="selectTargetLanguage" class="form-select"></select>
+            <p class="settings-section-hint">New scans will be translated into this language. Chapters you've already scanned keep their original translation.</p>
+          </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button class="btn-cta" id="btnSaveAiKey" style="flex: 1;">💾 Save Key & Enable AI</button>
-          <button class="btn-pill" id="btnClearAiKey"
-            style="padding: 12px 16px; background: #FEE2E2; color: #DC2626;">🗑️ Remove</button>
+        <!-- Section 3: Voice Accents -->
+        <div class="settings-section">
+          <div class="settings-section-title"><span>🔊</span> Voice Accent</div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="selectVoiceAccent">Reading voice</label>
+            <select id="selectVoiceAccent" class="form-select"></select>
+            <p class="settings-section-hint" id="voiceAccentHint">Auto-picks the best Indian-accent voice available on your device.</p>
+          </div>
         </div>
-        <button class="btn-pill" id="btnTestAiKey"
-          style="width: 100%; background: #EDE9FE; color: #6D28D9; font-weight: 700;">🔌 Test Connection</button>
-        <p id="aiTestResult" style="font-size: 12px; margin-top: 8px; min-height: 16px; font-weight: 600;"></p>
+
+        <!-- Section 4: Offline Engine -->
+        <div class="settings-section">
+          <div class="settings-section-title"><span>⚡</span> Offline Engine</div>
+          <div class="settings-toggle-row">
+            <span class="settings-toggle-label">Always use offline scanning</span>
+            <label class="settings-switch">
+              <input type="checkbox" id="checkPreferOffline">
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+          <p class="settings-section-hint">Skip AI Vision even if a key is set, and scan every page with the on-device engine instead.</p>
+        </div>
+
+        <!-- Section 5: Debug Logs -->
+        <div class="settings-section" style="margin-bottom: 0;">
+          <div class="settings-section-title"><span>📋</span> Debug Logs</div>
+          <button class="btn-settings-link" id="btnOpenDebugLogs">📋 View Debug Logs</button>
+        </div>
       </div>
     </div>
 
