@@ -128,8 +128,22 @@ export function getDomElements() {
     menuSubtitleOffline: document.getElementById('menuSubtitleOffline'),
 
     // Settings Panel - Translation Language
-    sourceLanguageOptionsList: document.getElementById('sourceLanguageOptionsList'),
-    targetLanguageOptionsList: document.getElementById('targetLanguageOptionsList'),
+    btnSourceLangSelector: document.getElementById('btnSourceLangSelector'),
+    btnTargetLangSelector: document.getElementById('btnTargetLangSelector'),
+    sourceLangFlag: document.getElementById('sourceLangFlag'),
+    sourceLangName: document.getElementById('sourceLangName'),
+    targetLangFlag: document.getElementById('targetLangFlag'),
+    targetLangName: document.getElementById('targetLangName'),
+    btnSwapLanguages: document.getElementById('btnSwapLanguages'),
+    langSourceRow: document.getElementById('langSourceRow'),
+    langSwapDivider: document.getElementById('langSwapDivider'),
+    langTargetRow: document.getElementById('langTargetRow'),
+    langPickerDropdown: document.getElementById('langPickerDropdown'),
+    langPickerTitle: document.getElementById('langPickerTitle'),
+    btnLangPickerClose: document.getElementById('btnLangPickerClose'),
+    langSearchInput: document.getElementById('langSearchInput'),
+    btnLangSearchClear: document.getElementById('btnLangSearchClear'),
+    languageDropdownList: document.getElementById('languageDropdownList'),
     languageDirectionHint: document.getElementById('languageDirectionHint'),
 
     // Settings Panel - Voice Accent

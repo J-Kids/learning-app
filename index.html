@@ -472,11 +472,48 @@
           </div>
           <p class="settings-section-hint" style="margin-bottom: 14px;">Pick the language printed on the page, and the language to translate it into. Chapters you've already scanned keep their original languages.</p>
 
-          <div class="settings-option-group-label">📖 Source (what's on the page)</div>
-          <div id="sourceLanguageOptionsList" class="settings-option-list"></div>
+          <!-- Language Pair Selector (Vertical Stack) -->
+          <div class="lang-pair-container" id="langPairContainer">
+            <div class="lang-pair-row" id="langSourceRow">
+              <span class="lang-pair-label">📖 SOURCE (ON PAGE)</span>
+              <button type="button" class="lang-selector-card" id="btnSourceLangSelector" aria-haspopup="listbox" aria-label="Choose source language">
+                <span class="lang-selector-flag" id="sourceLangFlag">🇬🇧</span>
+                <span class="lang-selector-name" id="sourceLangName">English</span>
+                <span class="lang-selector-arrow">▾</span>
+              </button>
+            </div>
 
-          <div class="settings-option-group-label" style="margin-top: 16px;">🌐 Target (translate into)</div>
-          <div id="targetLanguageOptionsList" class="settings-option-list"></div>
+            <!-- Searchable Language Picker Dropdown — repositioned by JS after the active row -->
+            <div class="lang-picker-dropdown" id="langPickerDropdown" style="display: none;">
+              <div class="lang-picker-header">
+                <span class="lang-picker-title" id="langPickerTitle">Select Source Language</span>
+                <button type="button" class="lang-picker-close" id="btnLangPickerClose" aria-label="Close language picker">✕</button>
+              </div>
+              <div class="lang-search-wrapper">
+                <span class="lang-search-icon">🔍</span>
+                <input type="text" id="langSearchInput" class="lang-search-input" placeholder="Search language (e.g. Hindi, Tamil)..." autocomplete="off" />
+                <button type="button" class="lang-search-clear" id="btnLangSearchClear" style="display: none;" aria-label="Clear search">✕</button>
+              </div>
+              <div id="languageDropdownList" class="settings-option-list lang-dropdown-list" role="listbox"></div>
+            </div>
+
+            <div class="lang-swap-divider" id="langSwapDivider">
+              <div class="lang-swap-line"></div>
+              <button type="button" class="btn-swap-lang" id="btnSwapLanguages" title="Swap languages" aria-label="Swap source and target languages">
+                ↕
+              </button>
+              <div class="lang-swap-line"></div>
+            </div>
+
+            <div class="lang-pair-row" id="langTargetRow">
+              <span class="lang-pair-label">🌐 TARGET (TRANSLATE INTO)</span>
+              <button type="button" class="lang-selector-card" id="btnTargetLangSelector" aria-haspopup="listbox" aria-label="Choose target language">
+                <span class="lang-selector-flag" id="targetLangFlag">🇮🇳</span>
+                <span class="lang-selector-name" id="targetLangName">Hindi</span>
+                <span class="lang-selector-arrow">▾</span>
+              </button>
+            </div>
+          </div>
 
           <p class="settings-section-hint" id="languageDirectionHint" style="margin-top: 14px;"></p>
         </div>
